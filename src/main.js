@@ -1,20 +1,11 @@
-/**
- * ARCHIVO: main.js
- * CONTROLADOR PRINCIPAL DEL JUEGO: "Descubro los grandes regalos"
- * 
- * Funcionalidades:
- * - Gestión de vistas (pantalla inicio, escenario)
- * - Escala responsiva (1024x768)
- * - Sistema de audio global
- * - Puntaje global acumulativo
- * - Integración secuencial: Nivel 1 -> Nivel 2 -> (Nivel 3)
- * - Reintento si falla un nivel
- */
+// ==========================================================
+// main.js - Control Central y Máquina de Estados del Juego
+// ==========================================================
 
 // Importar módulos de niveles
 import { iniciarNivel1 } from './bloques/nivel1.js';
 import { iniciarNivel2 } from './bloques/nivel2.js';
-// import { iniciarNivel3 } from './bloques/nivel3.js'; // para después
+import { iniciarNivel3 } from './bloques/nivel3.js'; 
 
 // ==================== CONFIGURACIÓN DE AUDIO ====================
 const MUSICA_FONDO = new Audio('src/audio/musica/loop_principal.mp3');
@@ -24,6 +15,7 @@ MUSICA_FONDO.volume = 0.3;
 const SONIDO_ACIERTO = new Audio('src/audio/sfx/acierto.mp3');
 const SONIDO_ERROR = new Audio('src/audio/sfx/error.mp3');
 const SONIDO_EXITO_NIVEL = new Audio('src/audio/sfx/exito.mp3');
+
 if (SONIDO_ACIERTO) SONIDO_ACIERTO.volume = 0.5;
 if (SONIDO_ERROR) SONIDO_ERROR.volume = 0.4;
 if (SONIDO_EXITO_NIVEL) SONIDO_EXITO_NIVEL.volume = 0.6;
@@ -34,7 +26,7 @@ const estadoGlobal = {
     puntajeTotal: 0,
     audioPermitido: false,
     nivelActual: 1,           // 1, 2 o 3
-    nivelEnCurso: null,       // instancia del nivel actual (para limpiar)
+    nivelEnCurso: null,       // Instancia del nivel activo (para limpieza de memoria)
     juegoActivo: false
 };
 
@@ -49,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalMensaje = document.getElementById('modal-mensaje');
     modalComoJugar = document.getElementById('modal-como-jugar');
     
-    // Crear escenario si no existe
+    // Crear escenario si no existe en el HTML
     if (!escenarioJuego) {
         escenarioJuego = document.createElement('div');
         escenarioJuego.id = 'escenario-juego';
@@ -57,18 +49,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('app').appendChild(escenarioJuego);
     }
     
-    // Mostrador de puntaje global
+    // Mostrador dinámico de puntaje global (Estilo Preescolar)
     if (!document.getElementById('puntaje-global')) {
         const puntajeDiv = document.createElement('div');
         puntajeDiv.id = 'puntaje-global';
         puntajeDiv.style.position = 'absolute';
-        puntajeDiv.style.top = '10px';
-        puntajeDiv.style.right = '20px';
-        puntajeDiv.style.background = 'rgba(0,0,0,0.6)';
-        puntajeDiv.style.color = 'gold';
-        puntajeDiv.style.padding = '5px 12px';
+        puntajeDiv.style.top = '15px';
+        puntajeDiv.style.right = '25px';
+        puntajeDiv.style.background = 'rgba(255, 255, 255, 0.9)';
+        puntajeDiv.style.border = '3px solid var(--azul-preescolar)';
+        puntajeDiv.style.color = 'var(--fiusha-preescolar)';
+        puntajeDiv.style.padding = '8px 18px';
         puntajeDiv.style.borderRadius = '30px';
-        puntajeDiv.style.fontWeight = 'bold';
+        puntajeDiv.style.fontWeight = '900';
+        puntajeDiv.style.fontSize = '1.3rem';
+        puntajeDiv.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
         puntajeDiv.style.zIndex = '1000';
         puntajeDiv.innerText = `⭐ PUNTOS: 0`;
         document.getElementById('app').appendChild(puntajeDiv);
@@ -81,11 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarManejadoresEventos();
     precargarImagenes();
     
-    // Habilitar audio tras primera interacción
-    document.body.addEventListener('click', habilitarAudioGlobal, { once: true });
+    // Soporte unificado Touch/Mouse para la primera interacción obligatoria de audio
+    document.body.addEventListener('pointerdown', habilitarAudioGlobal, { once: true });
 });
 
-// ==================== ESCALA RESPONSIVA ====================
+// ==================== ESCALA RESPONSIVA MANTENIENDO CONTENEDOR RÍGIDO ====================
 function inicializarEscala() {
     const ajustar = () => {
         const escalaX = window.innerWidth / 1024;
@@ -98,7 +93,7 @@ function inicializarEscala() {
     window.addEventListener('orientationchange', ajustar);
 }
 
-// ==================== PRECARGA ====================
+// ==================== PRECARGA OPTIMIZADA DE ASSETS ====================
 function precargarImagenes() {
     const imagenes = [
         'src/img/regalos/Papa Dios.png',
@@ -107,7 +102,8 @@ function precargarImagenes() {
         'src/images/n2/ana/Ana_silueta.png',
         'src/images/n2/santi/Santi_silueta.png',
         'src/imgs/intro/portada.png',
-        'src/imgs/intro/Titulos-01.png'
+        'src/imgs/intro/Titulos-01.png',
+        'src/imgs/intro/logo corto de cruz.png'
     ];
     imagenes.forEach(src => {
         const img = new Image();
@@ -115,15 +111,16 @@ function precargarImagenes() {
     });
 }
 
-// ==================== AUDIO ====================
+// ==================== CONTROLADOR DE AUDIO GLOBAL ====================
 function habilitarAudioGlobal() {
     if (estadoGlobal.audioPermitido) return;
     estadoGlobal.audioPermitido = true;
-    MUSICA_FONDO.play().catch(e => console.log('Música de fondo:', e));
+    MUSICA_FONDO.play().catch(e => console.log('Música de fondo diferida:', e));
     const bienvenida = new Audio('src/audio/narraciones/inicio_bienvenida.mp3');
-    bienvenida.play().catch(e => console.log('Narración:', e));
+    bienvenida.play().catch(e => console.log('Narración omitida:', e));
 }
 
+// ==================== MANEJADOR DE EFECTOS DE SONIDO ====================
 function reproducirSonido(tipo) {
     if (!estadoGlobal.audioPermitido) return;
     let sonido;
@@ -132,7 +129,7 @@ function reproducirSonido(tipo) {
     else if (tipo === 'exito') sonido = SONIDO_EXITO_NIVEL;
     if (sonido) {
         sonido.currentTime = 0;
-        sonido.play().catch(e => console.log('Error sonido:', e));
+        sonido.play().catch(e => console.log('Manejador SFX blocked:', e));
     }
 }
 
@@ -143,22 +140,25 @@ function actualizarPuntajeGlobal(puntos) {
     }
 }
 
-// ==================== CAMBIO DE PANTALLAS ====================
+// ==================== CAMBIO ESTRUCTURAL DE PANTALLAS ====================
 function mostrarPantalla(idPantalla) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('visible'));
     const pantalla = document.getElementById(idPantalla);
     if (pantalla) pantalla.classList.add('visible');
+    
     estadoGlobal.pantallaActual = idPantalla;
+    
     if (spanPuntajeGlobal) {
         spanPuntajeGlobal.style.display = idPantalla === 'escenario-juego' ? 'block' : 'none';
     }
 }
 
-// ==================== MANEJADORES DE EVENTOS UI ====================
+// ==================== MANEJADORES DE EVENTOS DE LA INTERFAZ DE INICIO (TOUCH FRIENDLY) ====================
 function configurarManejadoresEventos() {
     const btnIniciar = document.getElementById('btn-iniciar');
     if (btnIniciar) {
-        btnIniciar.addEventListener('click', () => {
+        btnIniciar.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             estadoGlobal.nivelActual = 1;
             estadoGlobal.puntajeTotal = 0;
             actualizarPuntajeGlobal(0);
@@ -168,20 +168,35 @@ function configurarManejadoresEventos() {
     
     const btnComoJugar = document.getElementById('btn-como-jugar');
     if (btnComoJugar && modalComoJugar) {
-        btnComoJugar.addEventListener('click', () => modalComoJugar.classList.remove('hidden'));
+        btnComoJugar.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            modalComoJugar.classList.remove('hidden');
+        });
+        
         const cerrar = modalComoJugar.querySelector('.cerrar-modal');
         const btnCerrar = document.getElementById('btn-cerrar-modal');
-        if (cerrar) cerrar.addEventListener('click', () => modalComoJugar.classList.add('hidden'));
-        if (btnCerrar) btnCerrar.addEventListener('click', () => modalComoJugar.classList.add('hidden'));
-        window.addEventListener('click', (e) => {
+        
+        if (cerrar) {
+            cerrar.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                modalComoJugar.classList.add('hidden');
+            });
+        }
+        if (btnCerrar) {
+            btnCerrar.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                modalComoJugar.classList.add('hidden');
+            });
+        }
+        
+        window.addEventListener('pointerdown', (e) => {
             if (e.target === modalComoJugar) modalComoJugar.classList.add('hidden');
         });
     }
 }
 
-// ==================== LANZAR NIVEL SEGÚN estadoGlobal.nivelActual ====================
+// ==================== INYECTOR Y CONTROLADOR DE NIVELES ====================
 async function iniciarNivelActual() {
-    // Limpiar nivel anterior si existe
     if (estadoGlobal.nivelEnCurso && typeof estadoGlobal.nivelEnCurso.limpiar === 'function') {
         estadoGlobal.nivelEnCurso.limpiar();
     }
@@ -194,68 +209,81 @@ async function iniciarNivelActual() {
         reproducirSonido: (tipo) => reproducirSonido(tipo),
         finalizarNivel: (exito, puntosObtenidos) => {
             estadoGlobal.juegoActivo = false;
+            
             if (exito) {
                 reproducirSonido('exito');
-                // Si hay siguiente nivel (2 o 3), avanzar; si no, finalizar juego
-                if (estadoGlobal.nivelActual < 3) {
-                    mostrarModalMensaje(
-                        `🎉 ¡Felicidades! Pasaste al nivel ${estadoGlobal.nivelActual + 1} 🎉`,
-                        () => {
-                            estadoGlobal.nivelActual++;
-                            iniciarNivelActual();
-                        },
-                        'Siguiente nivel'
-                    );
-                } else {
-                    // Completado todos los niveles
-                    mostrarModalMensaje(
-                        `🎉 ¡ENHORABUENA! Completaste todos los niveles.\n⭐ Puntaje total: ${estadoGlobal.puntajeTotal} ⭐`,
-                        () => {
-                            mostrarPantalla('pantalla-inicio');
-                            estadoGlobal.nivelActual = 1;
-                            estadoGlobal.puntajeTotal = 0;
-                            actualizarPuntajeGlobal(0);
-                        },
-                        'Jugar de nuevo'
-                    );
-                }
+                
+                // Retraso controlado para permitir feedback visual y asimilación en el infante
+                setTimeout(() => {
+                    if (estadoGlobal.nivelActual < 3) {
+                        mostrarModalMensaje(
+                            `🎉 ¡GRANDIOSO! 🎉\nCompletaste con éxito el Nivel ${estadoGlobal.nivelActual}.\n¿Listo para el siguiente reto?`,
+                            () => {
+                                estadoGlobal.nivelActual++;
+                                iniciarNivelActual();
+                            },
+                            'Siguiente Nivel',
+                            'exito-nivel'
+                        );
+                    } else {
+                        // Flujo final al completar exitosamente el Nivel 3
+                        mostrarModalMensaje(
+                            `🏆 ¡ENHORABUENA! 🏆\n¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.\n⭐ Completaste toda la aventura ⭐`,
+                            () => {
+                                mostrarPantalla('pantalla-inicio');
+                                estadoGlobal.nivelActual = 1;
+                                estadoGlobal.puntajeTotal = 0;
+                                actualizarPuntajeGlobal(0);
+                            },
+                            'Volver al Inicio',
+                            'exito-nivel'
+                        );
+                    }
+                }, 2500); 
+                
             } else {
-                // Falló el nivel: ofrecer reintentar
                 mostrarModalMensaje(
-                    `😢 No superaste el nivel ${estadoGlobal.nivelActual}. ¿Quieres intentarlo de nuevo?`,
+                    `😢 No logramos superar el nivel ${estadoGlobal.nivelActual}.\n¡No te preocupes, puedes intentarlo de nuevo!`,
                     () => {
-                        iniciarNivelActual(); // reintenta el mismo nivel
+                        iniciarNivelActual(); 
                     },
-                    'Reintentar'
+                    'Reintentar',
+                    'error-nivel'
                 );
             }
         },
         mostrarModal: (mensaje, exito) => {
-            // Mensajes internos del nivel (opcional)
-            mostrarModalMensaje(mensaje, null, exito ? 'Genial' : 'Entendido');
+            mostrarModalMensaje(mensaje, null, exito ? 'Genial' : 'Entendido', exito ? 'exito-nivel' : 'error-nivel');
         }
     };
-    
-    // Ejecutar el nivel correspondiente
+
+    // Abre la portadilla estática; al cerrarse presionando "¡VAMOS!", arranca la inyección lógica real
+    mostrarModalMensaje(
+        `🎈 ¡NIVEL ${estadoGlobal.nivelActual}! 🎈\nPrepárate para jugar y descubrir grandes regalos.`,
+        () => {
+            ejecutarLogicaNivel(callbacks);
+        }, 
+        '¡VAMOS!',
+        'intro-nivel'
+    );
+}
+
+// Subfunción interna aislada para despertar los hilos lógicos de los bloques JS independientes
+async function ejecutarLogicaNivel(callbacks) {
     let instancia;
     if (estadoGlobal.nivelActual === 1) {
         instancia = await iniciarNivel1(callbacks);
     } else if (estadoGlobal.nivelActual === 2) {
         instancia = await iniciarNivel2(callbacks);
     } else if (estadoGlobal.nivelActual === 3) {
-        // instancia = await iniciarNivel3(callbacks);
-        // Por ahora, si no existe nivel3, simulamos éxito
-        mostrarModalMensaje('Nivel 3 en construcción. ¡Juego completado!', () => {
-            mostrarPantalla('pantalla-inicio');
-            estadoGlobal.nivelActual = 1;
-        });
-        return;
+        // Ejecución oficial y limpia del Nivel 3 cargado dinámicamente
+        instancia = await iniciarNivel3(callbacks);
     }
     estadoGlobal.nivelEnCurso = instancia;
 }
 
-// ==================== MODAL GENÉRICO ====================
-function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar') {
+// ==================== MOTOR DE MODALES DINÁMICOS (OPTIMIZADO MÓVILES) ====================
+function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEstilo = 'default') {
     if (!modalMensaje) {
         modalMensaje = document.createElement('div');
         modalMensaje.id = 'modal-mensaje';
@@ -269,25 +297,38 @@ function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar') {
         `;
         document.getElementById('app').appendChild(modalMensaje);
     }
+    
+    const contenido = modalMensaje.querySelector('.modal-contenido');
     const textoP = modalMensaje.querySelector('#modal-mensaje-texto');
     const btn = modalMensaje.querySelector('#modal-mensaje-btn');
+    
     if (textoP) textoP.innerText = mensaje;
     if (btn) btn.innerText = textoBoton;
     
-    // Limpiar eventos anteriores y agregar nuevos
+    contenido.className = 'modal-contenido';
+    if (tipoEstilo !== 'default') {
+        contenido.classList.add(`modal-${tipoEstilo}`);
+    }
+    
+    // Clonación para limpiar listeners viejos de eventos previos
     const cerrarSpan = modalMensaje.querySelector('.cerrar-modal');
+    const nuevoBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(nuevoBtn, btn);
+    
     const cerrarFn = () => {
         modalMensaje.classList.add('hidden');
         if (onCerrar) onCerrar();
     };
-    // Reemplazar para evitar duplicados
-    const nuevoBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(nuevoBtn, btn);
+    
+    // Uso controlado de 'click' en los botones del modal para asegurar la sincronía 
+    // al destruir/ocultar nodos dinámicamente en navegadores móviles
     nuevoBtn.addEventListener('click', cerrarFn);
+    
     if (cerrarSpan) {
         const nuevoSpan = cerrarSpan.cloneNode(true);
         cerrarSpan.parentNode.replaceChild(nuevoSpan, cerrarSpan);
         nuevoSpan.addEventListener('click', cerrarFn);
     }
+    
     modalMensaje.classList.remove('hidden');
 }

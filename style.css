@@ -1,14 +1,17 @@
 /* ==========================================================
-   1. PALETA DE COLORES Y CONFIGURACIÓN BASE
+   1. PALETA DE COLORES Y CONFIGURACIÓN BASE (Actualizado 1º Preescolar)
    ========================================================== */
    :root {
     --escala-juego: 1;
+    
+    /* Nuevos colores institucionales 1º Preescolar */
+    --amarillo-escolar: #ecc500;   /* Tu color base principal */
+    --fiusha-preescolar: #c00087;   /* Color de acento / botones / cerrar */
+    --azul-preescolar: #0099c4;     /* Color secundario / títulos / headers */
+    
+    /* Colores complementarios de soporte */
     --verde-portada: #7bc542;
-    --azul-titulo: #2b3a8c;
-    --amarillo-escolar: #f5d020;
-    --azul-claro: #4a90d9;
-    --rojo-primaria: #c0395a;
-    --arena: #f2e6d0;
+    --arena: #f9f6f0;              /* Suavizado para mejor contraste */
     --blanco: #ffffff;
     --verde-exito: #4caf50;
     --sombra-boton: rgba(0, 0, 0, 0.2);
@@ -25,7 +28,7 @@ body, html {
     height: 100%;
     overflow: hidden;
     font-family: 'Quicksand', 'Quicksand Book', sans-serif;
-    background: linear-gradient(135deg, var(--verde-portada) 0%, var(--arena) 100%);
+    background: linear-gradient(135deg, var(--amarillo-escolar) 0%, var(--arena) 100%);
     background-size: 400% 400%;
     animation: gradienteFondo 15s ease infinite;
     display: flex;
@@ -45,7 +48,7 @@ body, html {
 .hidden { display: none !important; }
 
 /* ==========================================================
-   2. CONTENEDOR DE ESCALA (Marco rígido 1024x768)
+   2. CONTENEDOR DE ESCALA (Efecto cristal vivo y suave)
    ========================================================== */
 .contenedor-inicio {
     position: relative;
@@ -57,11 +60,18 @@ body, html {
     flex-direction: column;
     align-items: center;
     justify-content: space-between; 
-    padding: 20px 40px 15px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 40px;
-    border: 10px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    padding: 35px 40px 20px;
+    
+    /* Efecto cristal translúcido para dar profundidad */
+    background: rgba(255, 255, 255, 0.45); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    
+    border-radius: 45px;
+    border: 8px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.1),
+        inset 0 0 25px rgba(255, 255, 255, 0.4);
     overflow: hidden;
 }
 
@@ -73,27 +83,29 @@ body, html {
     transform: scale(var(--escala-juego));
     transform-origin: center center;
     border-radius: 40px;
-    border: 10px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    border: 10px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
 
 /* ==========================================================
-   3. ELEMENTOS VISUALES DE LA PORTADA (Ajuste del flujo)
+   3. ELEMENTOS VISUALES DE LA PORTADA (¡Con movimiento!)
    ========================================================== */
-.logo-titulo {
+   .logo-titulo {
     width: 100%;
-    max-width: 540px;
+    max-width: 680px; /* Estaba en 580px, lo subimos para que el logo pueda expandirse */
     display: flex;
     justify-content: center;
+    margin-top: 1px;
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12));
 }
 
 .img-titulo {
     width: 100%;
     height: auto;
-    max-height: 140px;
+    /* 2. Ajustamos la altura máxima proporcionalmente para que no domine toda la pantalla */
+    max-height: 300px; /* Estaba en 140px. Evita subirlo a 550px porque absorbería el espacio de los botones */
     object-fit: contain;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
 }
 
 .grupo-central {
@@ -103,90 +115,123 @@ body, html {
     justify-content: center;
     flex: 1;           
     width: 100%;
-    gap: 15px;
+    gap: 25px;
 }
 
 .imagen-portada {
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
     display: flex;
     justify-content: center;
     flex-shrink: 1;
+    /* Animación infantil flotante */
+    animation: flotarImagen 4s ease-in-out infinite;
 }
 
 .img-portada {
     width: 100%;
     height: auto;
-    max-height: 240px;
+    max-height: 260px;
     object-fit: contain;
     border-radius: 35px;
-    border: 10px solid var(--blanco);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    border: 5px solid var(--blanco);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.15);
     display: block;
 }
 
+/* Animación sutil de vaivén para la ilustración central */
+@keyframes flotarImagen {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
 /* ==========================================================
-   4. ESTILOS DE BOTONES INTERACTIVOS
+   POSICIONAMIENTO DEL LOGO CORTO DE CRUZ EN LA ESQUINA
+   ========================================================== */
+   .logo-cruz-esquina {
+    position: absolute;
+    bottom: 20px;   /* Separación del borde inferior de la tarjeta */
+    right: 25px;    /* Separación del borde derecho de la tarjeta */
+    width: auto;
+    height: 70px;   /* Tamaño equilibrado e ideal para la esquina */
+    object-fit: contain;
+    z-index: 15;    /* Asegura que quede por encima de los fondos */
+    pointer-events: none; /* Evita que interfiera accidentalmente con los clics si se llega a encimar */
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15)); /* Sutil sombra para integrarse al diseño vivo */
+    transition: transform 0.3s ease;
+}
+
+/* Opcional: Un pequeño efecto dinámico por si se redimensiona la pantalla */
+.contenedor-inicio:hover .logo-cruz-esquina {
+    transform: scale(1.03);
+}
+
+/* ==========================================================
+   4. ESTILOS DE BOTONES INTERACTIVOS (Efecto Pop)
    ========================================================== */
 .botones-inicio {
     display: flex;
-    gap: 25px;
+    gap: 30px;
     z-index: 10;
+    margin-bottom: 15px;
 }
 
 button {
     font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    font-size: 1.5rem;
-    padding: 18px 45px;
+    font-weight: 900;
+    font-size: 1.6rem;
+    padding: 20px 50px;
     border: none;
     border-radius: 60px;
     cursor: pointer;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
 }
 
+/* Botón principal: Fiusha con relieve 3D */
 .btn-principal {
-    background-color: var(--azul-titulo);
+    background-color: var(--fiusha-preescolar);
     color: var(--blanco);
-    box-shadow: 0 8px 0 #1a2455, 0 12px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 0 #8c0062, 0 15px 30px rgba(192, 0, 135, 0.35);
 }
 
+/* Botón secundario: Azul con relieve 3D */
 .btn-secundario {
-    background-color: var(--amarillo-escolar);
-    color: var(--azul-titulo);
-    box-shadow: 0 8px 0 #d4b400, 0 12px 25px rgba(0,0,0,0.2);
-}
-
-.btn-modal {
-    background-color: var(--verde-exito);
+    background-color: var(--azul-preescolar);
     color: var(--blanco);
-    box-shadow: 0 8px 0 #2e7d32;
-    margin-top: 20px;
-    font-size: 1.4rem;
-    padding: 16px 45px;
+    box-shadow: 0 10px 0 #006b8a, 0 15px 30px rgba(0, 153, 196, 0.35);
 }
 
+/* Efecto divertido al pasar el cursor (Agrandado interactivo) */
 button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px) scale(1.04);
 }
 
-button:active {
-    transform: translateY(6px);
-    box-shadow: 0 2px 0 var(--sombra-boton);
+.btn-principal:hover {
+    box-shadow: 0 12px 0 #8c0062, 0 20px 35px rgba(192, 0, 135, 0.45);
 }
+
+.btn-secundario:hover {
+    box-shadow: 0 12px 0 #006b8a, 0 20px 35px rgba(0, 153, 196, 0.45);
+}
+
+/* Efecto de hundimiento elástico al presionar */
+button:active {
+    transform: translateY(8px) scale(0.98);
+}
+.btn-principal:active { box-shadow: 0 2px 0 #8c0062, 0 5px 10px rgba(0,0,0,0.2); }
+.btn-secundario:active { box-shadow: 0 2px 0 #006b8a, 0 5px 10px rgba(0,0,0,0.2); }
 
 .footer {
     width: 100%;
     text-align: center;
-    font-size: 0.9rem;
-    color: var(--azul-titulo);
-    font-weight: 700;
-    opacity: 0.95;
-    padding: 10px 0 0 0;
-    margin-top: 5px;     
-    border-top: 2px solid rgba(43, 58, 140, 0.15);
+    font-size: 0.95rem;
+    color: var(--azul-preescolar);
+    font-weight: 800;
+    opacity: 0.8;
+    padding: 15px 0 0 0;
+    border-top: 2px solid rgba(0, 153, 196, 0.15);
 }
 
 /* ==========================================================
@@ -198,7 +243,7 @@ button:active {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.5); /* Un poco más suave */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -213,14 +258,14 @@ button:active {
     width: 90%;
     max-width: 600px;
     text-align: center;
-    border: 8px solid var(--azul-titulo);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    border: 8px solid var(--azul-preescolar);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
     position: relative;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .modal-contenido h2 {
-    color: var(--azul-titulo);
+    color: var(--azul-preescolar);
     font-size: 2.2rem;
     margin-bottom: 25px;
     font-weight: 900;
@@ -251,7 +296,7 @@ button:active {
     top: 15px;
     right: 25px;
     font-size: 2.5rem;
-    color: var(--rojo-primaria);
+    color: var(--fiusha-preescolar);
     cursor: pointer;
     font-weight: 800;
     transition: transform 0.2s;
@@ -284,23 +329,23 @@ button:active {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     padding: 18px 35px;
     border-radius: 30px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     z-index: 100;
-    border: 3px solid rgba(43, 58, 140, 0.1);
+    border: 3px solid rgba(0, 153, 196, 0.15);
 }
 
 .temporizador, .puntaje {
     font-size: 1.8rem;
     font-weight: 900;
-    color: var(--azul-titulo);
+    color: var(--azul-preescolar);
     font-family: 'Montserrat', sans-serif;
 }
 
 .objeto-trampa {
-    filter: drop-shadow(0 8px 16px rgba(192, 57, 90, 0.5)) !important;
+    filter: drop-shadow(0 8px 16px rgba(192, 0, 135, 0.4)) !important;
 }
 
 .mensaje-final {
@@ -311,8 +356,8 @@ button:active {
     background: var(--blanco);
     padding: 45px;
     border-radius: 40px;
-    border: 8px solid var(--azul-titulo);
-    box-shadow: 0 25px 55px rgba(0,0,0,0.4);
+    border: 8px solid var(--azul-preescolar);
+    box-shadow: 0 25px 55px rgba(0,0,0,0.25);
     text-align: center;
     z-index: 200;
     max-width: 550px;
@@ -323,7 +368,7 @@ button:active {
 .mensaje-final p {
     font-size: 1.6rem;
     font-weight: 800;
-    color: var(--azul-titulo);
+    color: var(--azul-preescolar);
     line-height: 1.5;
 }
 
@@ -357,16 +402,17 @@ button:active {
     filter: drop-shadow(0 15px 30px rgba(0,0,0,0.25));
 }
 
+/* Mensaje flotante: Usa fondo amarillo institucional con letras Azules */
 .mensaje-caja-mini {
     background-color: var(--amarillo-escolar);
-    color: var(--azul-titulo);
+    color: var(--azul-preescolar);
     padding: 8px 24px;
     border-radius: 20px;
     font-weight: 900;
     font-size: 1.25rem;
     margin-bottom: -15px; 
     box-shadow: 0 6px 15px rgba(0,0,0,0.18);
-    border: 3.5px solid var(--azul-titulo);
+    border: 3.5px solid var(--azul-preescolar);
     white-space: nowrap;
     z-index: 90;
 }
@@ -793,8 +839,134 @@ button:active {
     }
 }
 
-
+/*
 .drop-capturador {
     background: rgba(255, 0, 0, 0.3) !important;
     border: 3px solid red !important;
+}*/
+/* ==========================================================
+   ESTILOS ESPECÍFICOS PARA EL NIVEL 3: TOCA Y DESCUBRE
+   ========================================================== */
+
+   .nivel3-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.instruccion-nivel3 {
+    background: rgba(255, 255, 255, 0.95);
+    border: 4px dashed var(--azul-preescolar);
+    border-radius: 20px;
+    padding: 10px 25px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+    max-width: 80%;
+}
+
+.instruccion-nivel3 p {
+    color: var(--azul-preescolar);
+    font-size: 1.4rem;
+    font-weight: 900;
+    margin: 0;
+}
+
+/* Cuadrícula responsiva de 4x2 para tablets/PC que baja a 2x4 en pantallas verticales móviles */
+.grid-nivel3 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 90%;
+    max-width: 950px;
+    justify-items: center;
+}
+
+@media (max-width: 768px) {
+    .grid-nivel3 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    .instruccion-nivel3 p {
+        font-size: 1.1rem;
+    }
+}
+
+/* Tarjeta contenedora de la ilustración */
+.tarjeta-n3 {
+    position: relative;
+    background: #ffffff;
+    border: 6px solid #e0e0e0;
+    border-radius: 25px;
+    padding: 10px;
+    cursor: pointer;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    touch-action: none; /* Evita scrolls accidentales en móviles al arrastrar o tocar */
+}
+
+.tarjeta-n3:active {
+    transform: scale(0.92);
+}
+
+.wrapper-imagen-n3 {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wrapper-imagen-n3 img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    pointer-events: none; /* Evita que el navegador intente arrastrar la imagen en móviles */
+}
+
+/* Estados de feedback interactivo */
+.tarjeta-n3.correcto {
+    border-color: #4caf50 !important;
+    background-color: #f1fbf1;
+}
+
+.tarjeta-n3.incorrecto {
+    border-color: var(--rojo-primaria) !important;
+    background-color: #fff5f5;
+    opacity: 0.7;
+}
+
+/* Capa flotante con la estrella o equis gigante */
+.feedback-visual-n3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    font-weight: bold;
+    border-radius: 19px;
+    animation: popFeedback 0.3s cubic-bezier(0.175, 0.885, 0.42, 1.4);
+    pointer-events: none;
+}
+
+@keyframes popFeedback {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
