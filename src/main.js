@@ -2,7 +2,6 @@
 // main.js - Control Central y Máquina de Estados del Juego
 // ==========================================================
 
-// Importar módulos de niveles
 import { iniciarNivel1 } from './bloques/nivel1.js';
 import { iniciarNivel2 } from './bloques/nivel2.js';
 import { iniciarNivel3 } from './bloques/nivel3.js'; 
@@ -10,7 +9,7 @@ import { iniciarNivel3 } from './bloques/nivel3.js';
 // ==================== CONFIGURACIÓN DE AUDIO ====================
 const MUSICA_FONDO = new Audio('src/audio/musica/loop_principal.mp3');
 MUSICA_FONDO.loop = true;
-MUSICA_FONDO.volume = 0.3;
+MUSICA_FONDO.volume = 0.25; 
 
 const SONIDO_ACIERTO = new Audio('src/audio/sfx/acierto.mp3');
 const SONIDO_ERROR = new Audio('src/audio/sfx/error.mp3');
@@ -20,19 +19,20 @@ if (SONIDO_ACIERTO) SONIDO_ACIERTO.volume = 0.5;
 if (SONIDO_ERROR) SONIDO_ERROR.volume = 0.4;
 if (SONIDO_EXITO_NIVEL) SONIDO_EXITO_NIVEL.volume = 0.6;
 
+// Variable de control para la narración activa actual
+let narracionActual = null;
+
 // ==================== ESTADO GLOBAL ====================
 const estadoGlobal = {
     pantallaActual: 'pantalla-inicio',
     puntajeTotal: 0,
     audioPermitido: false,
-    nivelActual: 1,           // 1, 2 o 3
-    nivelEnCurso: null,       // Instancia del nivel activo (para limpieza de memoria)
+    nivelActual: 1,           
+    nivelEnCurso: null,       
     juegoActivo: false
 };
 
-// ==================== ELEMENTOS DEL DOM ====================
-let pantallaInicio, escenarioJuego, modalMensaje, modalComoJugar;
-let spanPuntajeGlobal;
+let pantallaInicio, escenarioJuego, modalMensaje, modalComoJugar, spanPuntajeGlobal;
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     modalMensaje = document.getElementById('modal-mensaje');
     modalComoJugar = document.getElementById('modal-como-jugar');
     
-    // Crear escenario si no existe en el HTML
     if (!escenarioJuego) {
         escenarioJuego = document.createElement('div');
         escenarioJuego.id = 'escenario-juego';
@@ -49,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('app').appendChild(escenarioJuego);
     }
     
-    // Mostrador dinámico de puntaje global (Estilo Preescolar)
     if (!document.getElementById('puntaje-global')) {
         const puntajeDiv = document.createElement('div');
         puntajeDiv.id = 'puntaje-global';
@@ -74,13 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     inicializarEscala();
     configurarManejadoresEventos();
-    precargarImagenes();
     
-    // Soporte unificado Touch/Mouse para la primera interacción obligatoria de audio
     document.body.addEventListener('pointerdown', habilitarAudioGlobal, { once: true });
 });
 
-// ==================== ESCALA RESPONSIVA MANTENIENDO CONTENEDOR RÍGIDO ====================
 function inicializarEscala() {
     const ajustar = () => {
         const escalaX = window.innerWidth / 1024;
@@ -93,34 +88,14 @@ function inicializarEscala() {
     window.addEventListener('orientationchange', ajustar);
 }
 
-// ==================== PRECARGA OPTIMIZADA DE ASSETS ====================
-function precargarImagenes() {
-    const imagenes = [
-        'src/img/regalos/Papa Dios.png',
-        'src/img/regalos/Flor.png',
-        'src/img/n1/Fondo Portadilla L1B1.png',
-        'src/images/n2/ana/Ana_silueta.png',
-        'src/images/n2/santi/Santi_silueta.png',
-        'src/imgs/intro/portada.png',
-        'src/imgs/intro/Titulos-01.png',
-        'src/imgs/intro/logo corto de cruz.png'
-    ];
-    imagenes.forEach(src => {
-        const img = new Image();
-        img.src = src;
-    });
-}
-
-// ==================== CONTROLADOR DE AUDIO GLOBAL ====================
 function habilitarAudioGlobal() {
     if (estadoGlobal.audioPermitido) return;
     estadoGlobal.audioPermitido = true;
-    MUSICA_FONDO.play().catch(e => console.log('Música de fondo diferida:', e));
-    const bienvenida = new Audio('src/audio/narraciones/inicio_bienvenida.mp3');
-    bienvenida.play().catch(e => console.log('Narración omitida:', e));
+    MUSICA_FONDO.play().catch(e => console.log('Música diferida:', e));
+    
+    reproducirNarracion('src/sonidos/L1/instruccion_portada.mp3'); 
 }
 
-// ==================== MANEJADOR DE EFECTOS DE SONIDO ====================
 function reproducirSonido(tipo) {
     if (!estadoGlobal.audioPermitido) return;
     let sonido;
@@ -129,7 +104,24 @@ function reproducirSonido(tipo) {
     else if (tipo === 'exito') sonido = SONIDO_EXITO_NIVEL;
     if (sonido) {
         sonido.currentTime = 0;
-        sonido.play().catch(e => console.log('Manejador SFX blocked:', e));
+        sonido.play().catch(e => console.log('SFX Bloqueado:', e));
+    }
+}
+
+// Control unificado de voces narrativas para evitar solapamientos
+function reproducirNarracion(rutaArchivo) {
+    if (!estadoGlobal.audioPermitido || !rutaArchivo) return;
+    
+    try {
+        if (narracionActual) {
+            narracionActual.pause();
+            narracionActual.currentTime = 0;
+        }
+        narracionActual = new Audio(rutaArchivo);
+        narracionActual.volume = 0.90; // Resalta fuertemente
+        narracionActual.play().catch(e => console.log('Narración bloqueada temporalmente:', e));
+    } catch (error) {
+        console.error("Error al reproducir la voz narrativa:", error);
     }
 }
 
@@ -140,12 +132,10 @@ function actualizarPuntajeGlobal(puntos) {
     }
 }
 
-// ==================== CAMBIO ESTRUCTURAL DE PANTALLAS ====================
 function mostrarPantalla(idPantalla) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('visible'));
     const pantalla = document.getElementById(idPantalla);
     if (pantalla) pantalla.classList.add('visible');
-    
     estadoGlobal.pantallaActual = idPantalla;
     
     if (spanPuntajeGlobal) {
@@ -153,7 +143,6 @@ function mostrarPantalla(idPantalla) {
     }
 }
 
-// ==================== MANEJADORES DE EVENTOS DE LA INTERFAZ DE INICIO (TOUCH FRIENDLY) ====================
 function configurarManejadoresEventos() {
     const btnIniciar = document.getElementById('btn-iniciar');
     if (btnIniciar) {
@@ -165,34 +154,6 @@ function configurarManejadoresEventos() {
             iniciarNivelActual();
         });
     }
-    
-    const btnComoJugar = document.getElementById('btn-como-jugar');
-    if (btnComoJugar && modalComoJugar) {
-        btnComoJugar.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            modalComoJugar.classList.remove('hidden');
-        });
-        
-        const cerrar = modalComoJugar.querySelector('.cerrar-modal');
-        const btnCerrar = document.getElementById('btn-cerrar-modal');
-        
-        if (cerrar) {
-            cerrar.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                modalComoJugar.classList.add('hidden');
-            });
-        }
-        if (btnCerrar) {
-            btnCerrar.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                modalComoJugar.classList.add('hidden');
-            });
-        }
-        
-        window.addEventListener('pointerdown', (e) => {
-            if (e.target === modalComoJugar) modalComoJugar.classList.add('hidden');
-        });
-    }
 }
 
 // ==================== INYECTOR Y CONTROLADOR DE NIVELES ====================
@@ -201,19 +162,27 @@ async function iniciarNivelActual() {
         estadoGlobal.nivelEnCurso.limpiar();
     }
     
+    if (narracionActual) {
+        narracionActual.pause();
+        narracionActual.currentTime = 0;
+    }
+    
     mostrarPantalla('escenario-juego');
     estadoGlobal.juegoActivo = true;
     
     const callbacks = {
         sumarPuntos: (puntos) => actualizarPuntajeGlobal(puntos),
         reproducirSonido: (tipo) => reproducirSonido(tipo),
+        reproducirNarracion: (ruta) => reproducirNarracion(ruta), 
         finalizarNivel: (exito, puntosObtenidos) => {
             estadoGlobal.juegoActivo = false;
             
             if (exito) {
                 reproducirSonido('exito');
                 
-                // Retraso controlado para permitir feedback visual y asimilación en el infante
+                // REPRODUCCIÓN INMEDIATA: Se ejecuta logrados_exito al completarse el bloque lógico
+                reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/logrado_exito.mp3`);
+                
                 setTimeout(() => {
                     if (estadoGlobal.nivelActual < 3) {
                         mostrarModalMensaje(
@@ -226,7 +195,6 @@ async function iniciarNivelActual() {
                             'exito-nivel'
                         );
                     } else {
-                        // Flujo final al completar exitosamente el Nivel 3
                         mostrarModalMensaje(
                             `🏆 ¡ENHORABUENA! 🏆\n¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.\n⭐ Completaste toda la aventura ⭐`,
                             () => {
@@ -257,7 +225,7 @@ async function iniciarNivelActual() {
         }
     };
 
-    // Abre la portadilla estática; al cerrarse presionando "¡VAMOS!", arranca la inyección lógica real
+    // PRIMERO: Desplegar el modal visual en pantalla
     mostrarModalMensaje(
         `🎈 ¡NIVEL ${estadoGlobal.nivelActual}! 🎈\nPrepárate para jugar y descubrir grandes regalos.`,
         () => {
@@ -266,9 +234,11 @@ async function iniciarNivelActual() {
         '¡VAMOS!',
         'intro-nivel'
     );
+
+    // SEGUNDO: Disparar simultáneamente el audio instruccional de la portadilla correspondiente
+    reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/instruccion_portada.mp3`);
 }
 
-// Subfunción interna aislada para despertar los hilos lógicos de los bloques JS independientes
 async function ejecutarLogicaNivel(callbacks) {
     let instancia;
     if (estadoGlobal.nivelActual === 1) {
@@ -276,13 +246,11 @@ async function ejecutarLogicaNivel(callbacks) {
     } else if (estadoGlobal.nivelActual === 2) {
         instancia = await iniciarNivel2(callbacks);
     } else if (estadoGlobal.nivelActual === 3) {
-        // Ejecución oficial y limpia del Nivel 3 cargado dinámicamente
         instancia = await iniciarNivel3(callbacks);
     }
     estadoGlobal.nivelEnCurso = instancia;
 }
 
-// ==================== MOTOR DE MODALES DINÁMICOS (OPTIMIZADO MÓVILES) ====================
 function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEstilo = 'default') {
     if (!modalMensaje) {
         modalMensaje = document.createElement('div');
@@ -310,7 +278,6 @@ function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEs
         contenido.classList.add(`modal-${tipoEstilo}`);
     }
     
-    // Clonación para limpiar listeners viejos de eventos previos
     const cerrarSpan = modalMensaje.querySelector('.cerrar-modal');
     const nuevoBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(nuevoBtn, btn);
@@ -320,10 +287,7 @@ function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEs
         if (onCerrar) onCerrar();
     };
     
-    // Uso controlado de 'click' en los botones del modal para asegurar la sincronía 
-    // al destruir/ocultar nodos dinámicamente en navegadores móviles
     nuevoBtn.addEventListener('click', cerrarFn);
-    
     if (cerrarSpan) {
         const nuevoSpan = cerrarSpan.cloneNode(true);
         cerrarSpan.parentNode.replaceChild(nuevoSpan, cerrarSpan);
