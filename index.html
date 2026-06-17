@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Una Historia Maravillosa - Descubro los grandes regalos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Pantalla de Inicio -->
+        <div id="pantalla-inicio" class="pantalla visible">
+            <div class="contenedor-inicio">
+                <div class="logo-titulo">
+                    <img src="src/imgs/intro/Titulos-01.png" alt="Título Una Historia Maravillosa" class="img-titulo">
+                </div>
+                
+                <!-- Grupo central: portada + botones (para que el footer quede abajo sin solaparse) -->
+                <div class="grupo-central">
+                    <div class="imagen-portada">
+                        <img src="src/imgs/intro/portada.png" alt="Portada del juego" class="img-portada">
+                    </div>
+                    <div class="botones-inicio">
+                        <button id="btn-iniciar" class="btn-principal">¡INICIAR!</button>
+                        <button id="btn-como-jugar" class="btn-secundario">¿CÓMO JUGAR?</button>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>© Todos los derechos reservados Casa del Catequista</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de "Cómo Jugar" -->
+        <div id="modal-como-jugar" class="modal hidden">
+            <div class="modal-contenido">
+                <span class="cerrar-modal">&times;</span>
+                <h2>📖 ¿CÓMO JUGAR?</h2>
+                <p>🎮 Descubre los tres grandes regalos de Papá Dios:</p>
+                <ol>
+                    <li><strong>Atrapa los regalos</strong> de la creación antes de que el tiempo termine.</li>
+                    <li><strong>Arrastra las partes</strong> del cuerpo en la silueta del niño o niña.</li>
+                    <li><strong>Toca y descubre</strong> las acciones que cuidan nuestro hogar.</li>
+                </ol>
+                <p>⭐ Gana puntos por cada acierto y consigue tus estrellas. ¡Diviértete aprendiendo!</p>
+                <button id="btn-cerrar-modal" class="btn-modal">¡Entendido!</button>
+            </div>
+        </div>
+
+        <!-- Aquí irán las demás pantallas (selector, escenario, niveles, etc.) -->
+    </div>
+
+    <script src="src/main.js" type="module"></script>
+</body>
+</html>

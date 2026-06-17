@@ -1,0 +1,800 @@
+/* ==========================================================
+   1. PALETA DE COLORES Y CONFIGURACIÓN BASE
+   ========================================================== */
+   :root {
+    --escala-juego: 1;
+    --verde-portada: #7bc542;
+    --azul-titulo: #2b3a8c;
+    --amarillo-escolar: #f5d020;
+    --azul-claro: #4a90d9;
+    --rojo-primaria: #c0395a;
+    --arena: #f2e6d0;
+    --blanco: #ffffff;
+    --verde-exito: #4caf50;
+    --sombra-boton: rgba(0, 0, 0, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Quicksand', 'Quicksand Book', sans-serif;
+    background: linear-gradient(135deg, var(--verde-portada) 0%, var(--arena) 100%);
+    background-size: 400% 400%;
+    animation: gradienteFondo 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes gradienteFondo {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Clases de Control de Visibilidad */
+.pantalla { display: none !important; }
+.pantalla.visible { display: flex !important; }
+.hidden { display: none !important; }
+
+/* ==========================================================
+   2. CONTENEDOR DE ESCALA (Marco rígido 1024x768)
+   ========================================================== */
+.contenedor-inicio {
+    position: relative;
+    width: 1024px;
+    height: 768px;
+    transform: scale(var(--escala-juego));
+    transform-origin: center center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; 
+    padding: 20px 40px 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    border: 10px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* Escenario de juego */
+#escenario-juego {
+    position: relative;
+    width: 1024px;
+    height: 768px;
+    transform: scale(var(--escala-juego));
+    transform-origin: center center;
+    border-radius: 40px;
+    border: 10px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* ==========================================================
+   3. ELEMENTOS VISUALES DE LA PORTADA (Ajuste del flujo)
+   ========================================================== */
+.logo-titulo {
+    width: 100%;
+    max-width: 540px;
+    display: flex;
+    justify-content: center;
+}
+
+.img-titulo {
+    width: 100%;
+    height: auto;
+    max-height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+}
+
+.grupo-central {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;           
+    width: 100%;
+    gap: 15px;
+}
+
+.imagen-portada {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 1;
+}
+
+.img-portada {
+    width: 100%;
+    height: auto;
+    max-height: 240px;
+    object-fit: contain;
+    border-radius: 35px;
+    border: 10px solid var(--blanco);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    display: block;
+}
+
+/* ==========================================================
+   4. ESTILOS DE BOTONES INTERACTIVOS
+   ========================================================== */
+.botones-inicio {
+    display: flex;
+    gap: 25px;
+    z-index: 10;
+}
+
+button {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    padding: 18px 45px;
+    border: none;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-principal {
+    background-color: var(--azul-titulo);
+    color: var(--blanco);
+    box-shadow: 0 8px 0 #1a2455, 0 12px 25px rgba(0,0,0,0.2);
+}
+
+.btn-secundario {
+    background-color: var(--amarillo-escolar);
+    color: var(--azul-titulo);
+    box-shadow: 0 8px 0 #d4b400, 0 12px 25px rgba(0,0,0,0.2);
+}
+
+.btn-modal {
+    background-color: var(--verde-exito);
+    color: var(--blanco);
+    box-shadow: 0 8px 0 #2e7d32;
+    margin-top: 20px;
+    font-size: 1.4rem;
+    padding: 16px 45px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 var(--sombra-boton);
+}
+
+.footer {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--azul-titulo);
+    font-weight: 700;
+    opacity: 0.95;
+    padding: 10px 0 0 0;
+    margin-top: 5px;     
+    border-top: 2px solid rgba(43, 58, 140, 0.15);
+}
+
+/* ==========================================================
+   5. SISTEMA DE DIÁLOGOS Y VENTANAS MODALES
+   ========================================================== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-contenido {
+    background: var(--blanco);
+    padding: 45px 35px;
+    border-radius: 40px;
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    border: 8px solid var(--azul-titulo);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    position: relative;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-contenido h2 {
+    color: var(--azul-titulo);
+    font-size: 2.2rem;
+    margin-bottom: 25px;
+    font-weight: 900;
+}
+
+.modal-contenido p {
+    color: #333;
+    font-size: 1.35rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.modal-contenido ol {
+    text-align: left;
+    margin: 20px auto 30px auto;
+    max-width: 85%;
+    color: #444;
+    font-size: 1.25rem;
+    line-height: 1.7;
+}
+
+.modal-contenido li {
+    margin-bottom: 12px;
+}
+
+.cerrar-modal {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 2.5rem;
+    color: var(--rojo-primaria);
+    cursor: pointer;
+    font-weight: 800;
+    transition: transform 0.2s;
+}
+
+.cerrar-modal:hover {
+    transform: scale(1.2);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================
+   6. MAQUETACIÓN Y DINÁMICA DE ELEMENTOS - NIVEL 1
+   ========================================================== */
+.nivel1-contenedor {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 25px;
+}
+
+.nivel1-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 18px 35px;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 100;
+    border: 3px solid rgba(43, 58, 140, 0.1);
+}
+
+.temporizador, .puntaje {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--azul-titulo);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.objeto-trampa {
+    filter: drop-shadow(0 8px 16px rgba(192, 57, 90, 0.5)) !important;
+}
+
+.mensaje-final {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--blanco);
+    padding: 45px;
+    border-radius: 40px;
+    border: 8px solid var(--azul-titulo);
+    box-shadow: 0 25px 55px rgba(0,0,0,0.4);
+    text-align: center;
+    z-index: 200;
+    max-width: 550px;
+    width: 85%;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mensaje-final p {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--azul-titulo);
+    line-height: 1.5;
+}
+
+/* ==========================================================
+   7. MODIFICADORES GIGANTES - PAPÁ DIOS (NIVEL 1)
+   ========================================================== */
+.area-regalos-full {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 5;
+}
+
+.papa-dios-inferior-izq {
+    position: absolute;
+    bottom: -10px;
+    left: -10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 80; 
+    pointer-events: none;
+}
+
+.papa-dios-grande-img {
+    height: 320px;
+    width: auto;
+    filter: drop-shadow(0 15px 30px rgba(0,0,0,0.25));
+}
+
+.mensaje-caja-mini {
+    background-color: var(--amarillo-escolar);
+    color: var(--azul-titulo);
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-weight: 900;
+    font-size: 1.25rem;
+    margin-bottom: -15px; 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.18);
+    border: 3.5px solid var(--azul-titulo);
+    white-space: nowrap;
+    z-index: 90;
+}
+
+.regalo-flotante {
+    position: absolute;
+    cursor: pointer;
+    user-select: none;
+    z-index: 20;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.2));
+}
+
+.regalo-flotante:hover {
+    transform: scale(1.15);
+}
+/* ==========================================================
+   NIVEL 2: ROMPECABEZAS ANA Y SANTI (CALCE PERFECTO)
+   ========================================================== */
+
+/* --- Pantalla de Selección de Personaje --- */
+.nivel2-seleccion {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
+    box-sizing: border-box;
+}
+
+.nivel2-seleccion h2 {
+    font-size: 2.5rem;
+    color: var(--azul-titulo, #2b3a8c);
+    margin-bottom: 40px;
+    font-weight: 900;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.personajes-container {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+}
+
+.personaje-card {
+    background: var(--blanco, #ffffff);
+    border: 6px solid var(--azul-titulo, #2b3a8c);
+    border-radius: 40px;
+    padding: 30px 25px;
+    cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.25s;
+    width: 230px;
+    text-align: center;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.personaje-card:hover {
+    transform: scale(1.08);
+    background-color: #fffde7;
+    border-color: var(--amarillo-escolar, #f5d020);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.personaje-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.personaje-card p {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--azul-titulo, #2b3a8c);
+    margin: 0;
+}
+
+/* --- Contenedor Principal del Juego --- */
+.nivel2-contenedor {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    background: #fdfaf2;
+    box-sizing: border-box;
+}
+
+.nivel2-area-juego {
+    display: flex;
+    flex: 1;
+    justify-content: space-around;
+    align-items: center;
+    height: calc(100% - 100px);
+    gap: 20px;
+}
+
+/* --- Header de Estado --- */
+.nivel2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    box-sizing: border-box;
+}
+
+.puntaje-n2,
+.progreso-n2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--azul-titulo, #2b3a8c);
+}
+
+/* --- Contenedor del Personaje y Silueta --- */
+.silueta-container {
+    position: relative;
+    width: 380px;
+    height: 550px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 35px;
+    border: 4px dashed rgba(43, 58, 140, 0.15);
+    box-sizing: border-box;
+}
+
+/* Regla base de la silueta completa */
+.silueta-base {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+    opacity: 0.9;
+}
+
+/* --- CALIBRACIÓN MANUAL PARA IMÁGENES RECORTADAS AL RAS --- */
+.capa-personaje {
+    position: absolute;
+    object-fit: contain;
+    pointer-events: none; /* Evita que las capas bloqueen clics */
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Posiciones de cada pieza para Santi*/
+#destino-cabeza {
+    top: 0%;
+    left: 20.01%;
+    width: 60%;
+    z-index: 3;
+}
+#destino-ojos {
+    top: 16.5%;
+    left: 35%;
+    width: 31%;
+    z-index: 5;
+}
+#destino-oidos {
+    top: 23%;
+    left: 20%;
+    width: 31%;
+    z-index: 2;
+}
+#destino-corazon {
+    top: 47.4%;
+    left: 48.4%;
+    width: 19.2%;
+    z-index: 4;
+}
+#destino-manos {
+    top: 59.5%;
+    left: 5.5%;
+    width: 89%;
+    z-index: 4;
+}
+#destino-pies {
+    top: 85%;
+    left: 22%;
+    width: 55%;
+    z-index: 3;
+}
+/* --- Coordenadas Ana --- */
+.personaje-ana #destino-cabeza     { top: -1%; left: 15%; width: 70%; z-index: 3; }
+.personaje-ana #destino-ojos       { top: 17%; left: 33.7%; width: 32.5%; z-index: 5; }
+.personaje-ana #destino-oidos      { top: 24%; left: 20%; width: 30%; z-index: 2; }
+.personaje-ana #destino-corazon    { top: 48%; left: 47%; width: 18%; z-index: 4; }
+.personaje-ana #destino-manos      { top: 60%; left: 5%; width: 90%; z-index: 4; }
+.personaje-ana #destino-pies       { top: 90%; left: 25%; width: 50%; z-index: 3; }
+
+/* Estados de ocultación y animación */
+.pieza-destino-capa.hidden {
+    display: block !important;
+    opacity: 0 !important;
+    transform: scale(0.92);
+}
+
+:not(.hidden).pieza-destino-capa {
+    animation: reboteColocacion 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* --- Zonas de Drop (invisibles pero interactivas) --- */
+.drop-capturador {
+    position: absolute;
+    z-index: 20; /* Siempre por encima de las capas de piezas */
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.01);
+    transition: background 0.2s, border 0.2s, transform 0.2s;
+    box-sizing: border-box;
+}
+
+.drop-capturador:hover {
+    background: rgba(245, 208, 32, 0.25);
+    border: 3px dashed var(--amarillo-escolar, #f5d020);
+    transform: scale(1.02);
+}
+
+/* Cuando una zona ya ha recibido su pieza, se desactiva y oculta */
+.drop-capturador.completado {
+    pointer-events: none !important;
+    opacity: 0 !important;
+    transform: scale(0.8) !important;
+}
+
+/* Posiciones de cada zona (idénticas a las de las capas) */
+.zona-cabeza {
+    top: 0%;
+    left: 14.8%;
+    width: 70.4%;
+    height: 38%;
+    border-radius: 50%;
+}
+.zona-ojos {
+    top: 20.4%;
+    left: 32.5%;
+    width: 35.2%;
+    height: 10%;
+    border-radius: 10px;
+}
+.zona-oidos {
+    top: 19.8%;
+    left: 1.5%;
+    width: 97%;
+    height: 12%;
+    border-radius: 15px;
+}
+.zona-corazon {
+    top: 47.4%;
+    left: 48.4%;
+    width: 19.2%;
+    height: 11%;
+    border-radius: 50%;
+}
+.zona-manos {
+    top: 58%;
+    left: 0%;
+    width: 100%;
+    height: 15%;
+    border-radius: 20px;
+}
+.zona-pies {
+    top: 84.8%;
+    left: 20.2%;
+    width: 59.6%;
+    height: 15%;
+    border-radius: 15px;
+}
+
+/* --- Almacén Lateral de Piezas Sueltas --- */
+.partes-container {
+    width: 340px;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 20px;
+    border-radius: 35px;
+    border: 4px solid rgba(43, 58, 140, 0.1);
+    align-content: center;
+    box-sizing: border-box;
+}
+
+.parte-arrastrable {
+    background: var(--blanco, #ffffff);
+    border: 4px solid var(--azul-titulo, #2b3a8c);
+    border-radius: 22px;
+    padding: 10px;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 125px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    transition: transform 0.15s, background-color 0.15s, border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.parte-arrastrable:active {
+    cursor: grabbing;
+}
+
+.parte-arrastrable img {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.parte-arrastrable.seleccionada {
+    border-color: #ff9800;
+    background: #fff3e0;
+    transform: scale(1.06);
+    box-shadow: 0 10px 20px rgba(255, 152, 0, 0.2);
+}
+
+/* --- Mensaje de Éxito y Feedback --- */
+.mensaje-final-n2 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--blanco, #ffffff);
+    padding: 40px;
+    border-radius: 40px;
+    border: 8px solid var(--azul-titulo, #2b3a8c);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--azul-titulo, #2b3a8c);
+    z-index: 150;
+    max-width: 540px;
+    width: 85%;
+    box-sizing: border-box;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-continuar-n2 {
+    display: inline-block;
+    background-color: var(--verde-exito, #4caf50);
+    color: var(--blanco, #ffffff);
+    border: none;
+    font-family: inherit;
+    font-weight: 900;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 8px 0 #2e7d32, 0 10px 20px rgba(0, 0, 0, 0.15);
+    margin-top: 25px;
+    font-size: 1.4rem;
+    padding: 15px 40px;
+}
+
+.btn-continuar-n2:active {
+    transform: translateY(4px);
+    box-shadow: 0 4px 0 #2e7d32, 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.feedback-pop {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 30px;
+    border-radius: 30px;
+    color: var(--blanco, #ffffff);
+    font-weight: 800;
+    font-size: 1.3rem;
+    z-index: 200;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    animation: subirYRevelar 0.35s ease-out forwards;
+}
+
+.fb-exito {
+    background-color: #4caf50;
+}
+.fb-error {
+    background-color: #f44336;
+}
+
+/* --- Animaciones --- */
+@keyframes reboteColocacion {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.04);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes subirYRevelar {
+    from {
+        transform: translate(-50%, 25px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    from {
+        transform: translate(-50%, -30%) scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+
+.drop-capturador {
+    background: rgba(255, 0, 0, 0.3) !important;
+    border: 3px solid red !important;
+}
