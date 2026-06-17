@@ -1,5 +1,6 @@
+// src/bloques/nivel2.js - Mi cuerpo es un tesoro (Versión INTEGRADA CON EL WORD)
 export async function iniciarNivel2(callbacks) {
-    const { sumarPuntos, reproducirSonido, finalizarNivel, mostrarModal } = callbacks;
+    const { sumarPuntos, reproducirSonido, reproducirNarracion, finalizarNivel, mostrarModal } = callbacks;
     
     const PUNTOS_POR_ACIERTO = 20;
     let puntajeNivel = 0;
@@ -60,14 +61,38 @@ export async function iniciarNivel2(callbacks) {
         const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
         const personajeCap = capitalize(personajeSeleccionado);
         
-        // Mapeo dinámico de imágenes
+        // CORRECCIÓN CENTRAL: Mapeo exacto de los textos e intenciones pedagógicas del Word
         const partes = {
-            cabeza: { img: `${BASE_PATH}${personajeSeleccionado}/Cabeza_${personajeCap}.png`, audio: 'Mi cabeza y mi carita son regalos de Dios.' },
-            manos: { img: `${BASE_PATH}${personajeSeleccionado}/Manos_${personajeCap}.png`, audio: 'Con mis manitas puedo hacer cosas buenas.' },
-            ojos: { img: `${BASE_PATH}${personajeSeleccionado}/Ojos_${personajeCap}.png`, audio: 'Con mis ojos veo maravillas.' },
-            oidos: { img: `${BASE_PATH}${personajeSeleccionado}/Orejas_${personajeCap}.png`, audio: 'Con mis oídos escucho con atención.' },
-            pies: { img: `${BASE_PATH}${personajeSeleccionado}/Pies_${personajeCap}.png`, audio: 'Con mis pies camino y juego.' },
-            corazon: { img: `${BASE_PATH}${personajeSeleccionado}/Corazon.png`, audio: 'Papá Dios me dio un corazón para amar.' }
+            cabeza: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Cabeza_${personajeCap}.png`, 
+                texto: 'Mi cabeza y mi carita son regalos de Dios para expresarme.',
+                audioUrl: 'src/sonidos/L2/CaritaConOjosCerrados.mp3'
+            },
+            manos: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Manos_${personajeCap}.png`, 
+                texto: 'Con mis manitas puedo hacer cosas buenas.' ,
+                audioUrl: 'src/sonidos/L2/manos.mp3'
+            },
+            pies: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Pies_${personajeCap}.png`, 
+                texto: 'Con mis pies puedo caminar, jugar y hacer el bien.' ,
+                audioUrl: 'src/sonidos/L2/pies.mp3'
+            },
+            oidos: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Orejas_${personajeCap}.png`, 
+                texto: 'Con mis oídos escucho con atención.' ,
+                audioUrl: 'src/sonidos/L2/oidos.mp3'
+            },
+            ojos: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Ojos_${personajeCap}.png`, 
+                texto: 'Con mis ojos puedo ver las maravillas de la creación.' ,
+                audioUrl: 'src/sonidos/L2/ojosAbiertos.mp3'
+            },
+            corazon: { 
+                img: `${BASE_PATH}${personajeSeleccionado}/Corazon.png`, 
+                texto: 'Papá Dios me dio un corazón para amar y hacer el bien.' ,
+                audioUrl: 'src/sonidos/L2/corazon.mp3'
+            }
         };
         
         const siluetaImg = `${BASE_PATH}${personajeSeleccionado}/${personajeCap}_silueta.png`;
@@ -82,27 +107,23 @@ export async function iniciarNivel2(callbacks) {
                 
                 <div class="nivel2-area-juego">
                     <div class="silueta-container">
-                        <!-- CAPA 1: Silueta base (fondo) -->
                         <img src="${siluetaImg}" alt="Silueta" class="capa-personaje silueta-base">
                         
-                        <!-- CAPAS 2 a 7: Piezas ocultas que se revelan al acertar -->
                         <img src="${partes.cabeza.img}"  id="destino-cabeza"  class="capa-personaje pieza-destino-capa hidden" data-parte="cabeza">
                         <img src="${partes.manos.img}"   id="destino-manos"   class="capa-personaje pieza-destino-capa hidden" data-parte="manos">
-                        <img src="${partes.ojos.img}"    id="destino-ojos"    class="capa-personaje pieza-destino-capa hidden" data-parte="ojos">
-                        <img src="${partes.oidos.img}"   id="destino-oidos"   class="capa-personaje pieza-destino-capa hidden" data-parte="oidos">
                         <img src="${partes.pies.img}"    id="destino-pies"    class="capa-personaje pieza-destino-capa hidden" data-parte="pies">
+                        <img src="${partes.oidos.img}"   id="destino-oidos"   class="capa-personaje pieza-destino-capa hidden" data-parte="oidos">
+                        <img src="${partes.ojos.img}"    id="destino-ojos"    class="capa-personaje pieza-destino-capa hidden" data-parte="ojos">
                         <img src="${partes.corazon.img}" id="destino-corazon" class="capa-personaje pieza-destino-capa hidden" data-parte="corazon">
                         
-                        <!-- Zonas de drop (invisibles pero interactivas) -->
                         <div class="drop-capturador zona-cabeza"  data-parte="cabeza"></div>
                         <div class="drop-capturador zona-manos"   data-parte="manos"></div>
-                        <div class="drop-capturador zona-ojos"    data-parte="ojos"></div>
-                        <div class="drop-capturador zona-oidos"   data-parte="oidos"></div>
                         <div class="drop-capturador zona-pies"    data-parte="pies"></div>
+                        <div class="drop-capturador zona-oidos"   data-parte="oidos"></div>
+                        <div class="drop-capturador zona-ojos"    data-parte="ojos"></div>
                         <div class="drop-capturador zona-corazon" data-parte="corazon"></div>
                     </div>
                     
-                    <!-- Almacén de piezas sueltas (lado derecho) -->
                     <div class="partes-container" id="partes-container"></div>
                 </div>
                 
@@ -113,17 +134,15 @@ export async function iniciarNivel2(callbacks) {
         
         // ---------- Sincronización Automática de Zonas Drop con CSS ----------
         setTimeout(() => {
-            const partesKeys = ['cabeza', 'manos', 'ojos', 'oidos', 'pies', 'corazon'];
+            const partesKeys = ['cabeza', 'manos', 'pies', 'oidos', 'ojos', 'corazon'];
             partesKeys.forEach(parte => {
                 const destino = document.getElementById(`destino-${parte}`);
                 const zona = document.querySelector(`.zona-${parte}`);
                 if (destino && zona) {
-                    // Copiar posición horizontal y ancho calculado desde el CSS del personaje actual
                     zona.style.top = destino.style.top || getComputedStyle(destino).top;
                     zona.style.left = destino.style.left || getComputedStyle(destino).left;
-                    zona.style.width = destino.style.width || getComputedStyle(destino).width;
+                    zona.style.width = sizeofDestinoWidth || getComputedStyle(destino).width;
                     
-                    // Alturas proporcionales interactivas para las cajas de colisión
                     if (parte === 'cabeza') zona.style.height = '35%';
                     else if (parte === 'ojos') zona.style.height = '10%';
                     else if (parte === 'oidos') zona.style.height = '12%';
@@ -152,11 +171,8 @@ export async function iniciarNivel2(callbacks) {
             
             parteDiv.appendChild(img);
             
-            // Eventos Drag & Drop
             parteDiv.addEventListener('dragstart', handleDragStart);
             parteDiv.addEventListener('dragend', handleDragEnd);
-            
-            // Soporte para clic (accesibilidad en tabletas)
             parteDiv.addEventListener('click', () => handleSeleccionPorClick(key));
             
             partesContainer.appendChild(parteDiv);
@@ -166,7 +182,6 @@ export async function iniciarNivel2(callbacks) {
         document.querySelectorAll('.drop-capturador').forEach(zona => {
             zona.addEventListener('dragover', (e) => e.preventDefault());
             zona.addEventListener('drop', handleDrop);
-            // Clic directo en la zona si hay pieza seleccionada
             zona.addEventListener('click', () => {
                 if (zona.classList.contains('completado')) return;
                 if (piezaClickeadaPreviamente) {
@@ -176,7 +191,6 @@ export async function iniciarNivel2(callbacks) {
             });
         });
         
-        // ---------- Variables de arrastre ----------
         let draggedParte = null;
         
         function handleDragStart(e) {
@@ -201,7 +215,6 @@ export async function iniciarNivel2(callbacks) {
             procesarVerificacion(parteId, parteEsperada);
         }
         
-        // ---------- Selección por clic (modo táctil) ----------
         function handleSeleccionPorClick(parteId) {
             if (!juegoActivo) return;
             document.querySelectorAll('.parte-arrastrable').forEach(p => p.classList.remove('seleccionada'));
@@ -243,8 +256,14 @@ export async function iniciarNivel2(callbacks) {
             if (sumarPuntos) sumarPuntos(PUNTOS_POR_ACIERTO);
             if (reproducirSonido) reproducirSonido('acierto');
             
-            const audioTexto = partes[parteId].audio;
-            mostrarFeedback(`🎵 ${audioTexto}`, 'acierto');
+            // CORRECCIÓN 1: Extraer datos limpios usando la propiedad correcta (.texto)
+            const parteData = partes[parteId];
+            mostrarFeedback(`🎵 ${parteData.texto}`, 'acierto');
+            
+            // CORRECCIÓN 2: Invocar el reproductor de narraciones de main.js pasándole la ruta .mp3
+            if (reproducirNarracion) {
+                reproducirNarracion(parteData.audioUrl);
+            }
             
             const elementoOriginal = document.querySelector(`.parte-arrastrable[data-parte="${parteId}"]`);
             if (elementoOriginal) elementoOriginal.remove();
@@ -254,7 +273,7 @@ export async function iniciarNivel2(callbacks) {
             
             if (aciertos === totalPartes) {
                 juegoActivo = false;
-                const mensaje = '🎉 ¡Felicidades! Has descubierto que tu cuerpo es un gran regalo. 🎉';
+                const mensaje = '¡Felicidades! Has descubierto que la vida es un gran regalo.';
                 const mensajeDiv = document.getElementById('mensaje-final-n2');
                 mensajeDiv.innerText = mensaje;
                 mensajeDiv.classList.remove('hidden');
@@ -265,7 +284,6 @@ export async function iniciarNivel2(callbacks) {
             }
         }
         
-        // ---------- Feedback visual ----------
         function mostrarFeedback(texto, tipo) {
             const contenedor = document.querySelector('.nivel2-contenedor');
             if (!contenedor) return;
@@ -276,7 +294,6 @@ export async function iniciarNivel2(callbacks) {
             setTimeout(() => feedback.remove(), 2500);
         }
         
-        // ---------- Botón para continuar ----------
         function agregarBotonContinuar() {
             const btn = document.createElement('button');
             btn.innerText = '➡️ Siguiente nivel';
@@ -288,7 +305,6 @@ export async function iniciarNivel2(callbacks) {
         }
     }
     
-    // ---------- Limpieza del nivel ----------
     return {
         limpiar: () => {
             juegoActivo = false;

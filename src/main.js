@@ -108,7 +108,6 @@ function reproducirSonido(tipo) {
     }
 }
 
-// Control unificado de voces narrativas para evitar solapamientos
 function reproducirNarracion(rutaArchivo) {
     if (!estadoGlobal.audioPermitido || !rutaArchivo) return;
     
@@ -118,7 +117,7 @@ function reproducirNarracion(rutaArchivo) {
             narracionActual.currentTime = 0;
         }
         narracionActual = new Audio(rutaArchivo);
-        narracionActual.volume = 0.90; // Resalta fuertemente
+        narracionActual.volume = 0.90; 
         narracionActual.play().catch(e => console.log('Narración bloqueada temporalmente:', e));
     } catch (error) {
         console.error("Error al reproducir la voz narrativa:", error);
@@ -179,14 +178,13 @@ async function iniciarNivelActual() {
             
             if (exito) {
                 reproducirSonido('exito');
-                
-                // REPRODUCCIÓN INMEDIATA: Se ejecuta logrados_exito al completarse el bloque lógico
                 reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/logrado_exito.mp3`);
                 
                 setTimeout(() => {
-                    if (estadoGlobal.nivelActual < 3) {
+                    if (estadoGlobal.nivelActual === 1 || estadoGlobal.nivelActual === 2) {
+                        // TEXTO IDÉNTICO WORD NIVELES 1 Y 2
                         mostrarModalMensaje(
-                            `🎉 ¡GRANDIOSO! 🎉\nCompletaste con éxito el Nivel ${estadoGlobal.nivelActual}.\n¿Listo para el siguiente reto?`,
+                            `¡Felicidades! Has descubierto que la vida es un gran regalo.`,
                             () => {
                                 estadoGlobal.nivelActual++;
                                 iniciarNivelActual();
@@ -194,9 +192,10 @@ async function iniciarNivelActual() {
                             'Siguiente Nivel',
                             'exito-nivel'
                         );
-                    } else {
+                    } else if (estadoGlobal.nivelActual === 3) {
+                        // TEXTO IDÉNTICO WORD NIVEL 3 + CIERRE GLOBAL DEL DOCUMENTO
                         mostrarModalMensaje(
-                            `🏆 ¡ENHORABUENA! 🏆\n¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.\n⭐ Completaste toda la aventura ⭐`,
+                            `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.\n\n🏆 ¡Felicidades! Descubriste los grandes regalos 🏆`,
                             () => {
                                 mostrarPantalla('pantalla-inicio');
                                 estadoGlobal.nivelActual = 1;
@@ -211,7 +210,7 @@ async function iniciarNivelActual() {
                 
             } else {
                 mostrarModalMensaje(
-                    `😢 No logramos superar el nivel ${estadoGlobal.nivelActual}.\n¡No te preocupes, puedes intentarlo de nuevo!`,
+                    `Inténtalo de nuevo para descubrir todos los regalos.`,
                     () => {
                         iniciarNivelActual(); 
                     },
@@ -221,13 +220,36 @@ async function iniciarNivelActual() {
             }
         },
         mostrarModal: (mensaje, exito) => {
-            mostrarModalMensaje(mensaje, null, exito ? 'Genial' : 'Entendido', exito ? 'exito-nivel' : 'error-nivel');
+            if (exito) {
+                const txt = estadoGlobal.nivelActual === 3 
+                    ? `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.` 
+                    : `¡Felicidades! Has descubierto que la vida es un gran regalo.`;
+                mostrarModalMensaje(txt, null, 'Genial', 'exito-nivel');
+            } else {
+                mostrarModalMensaje(`Inténtalo de nuevo para descubrir todos los regalos.`, null, 'Entendido', 'error-nivel');
+            }
         }
     };
 
-    // PRIMERO: Desplegar el modal visual en pantalla
+    // CORRECCIÓN CENTRAL: Mensaje de instrucción dinámico e idéntico al Word por nivel
+    let instruccionTexto = "";
+    switch(estadoGlobal.nivelActual) {
+        case 1:
+            instruccionTexto = "¡Atrapa los regalos de la creación!";
+            break;
+        case 2:
+            instruccionTexto = "Toca las partes de tu cuerpo y descubre por qué son un tesoro.";
+            break;
+        case 3:
+            instruccionTexto = "Elige las ilustraciones que ayudan a cuidar la casa en donde todos vivimos.";
+            break;
+        default:
+            instruccionTexto = "Elige las ilustraciones correctas.";
+    }
+
+    // Desplegar el modal visual correcto en pantalla
     mostrarModalMensaje(
-        `🎈 ¡NIVEL ${estadoGlobal.nivelActual}! 🎈\nPrepárate para jugar y descubrir grandes regalos.`,
+        instruccionTexto,
         () => {
             ejecutarLogicaNivel(callbacks);
         }, 
@@ -235,7 +257,6 @@ async function iniciarNivelActual() {
         'intro-nivel'
     );
 
-    // SEGUNDO: Disparar simultáneamente el audio instruccional de la portadilla correspondiente
     reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/instruccion_portada.mp3`);
 }
 
