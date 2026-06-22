@@ -7,19 +7,18 @@ import { iniciarNivel2 } from './bloques/nivel2.js';
 import { iniciarNivel3 } from './bloques/nivel3.js'; 
 
 // ==================== CONFIGURACIÓN DE AUDIO ====================
-const MUSICA_FONDO = new Audio('src/audio/musica/loop_principal.mp3');
+const MUSICA_FONDO = new Audio('src/sonidos/musica/loop_principal.mp3');
 MUSICA_FONDO.loop = true;
 MUSICA_FONDO.volume = 0.25; 
 
-const SONIDO_ACIERTO = new Audio('src/audio/sfx/acierto.mp3');
-const SONIDO_ERROR = new Audio('src/audio/sfx/error.mp3');
-const SONIDO_EXITO_NIVEL = new Audio('src/audio/sfx/exito.mp3');
+const SONIDO_ACIERTO = new Audio('src/sonidos/sfx/acierto.mp3');
+const SONIDO_ERROR = new Audio('src/sonidos/sfx/error.mp3');
+const SONIDO_EXITO_NIVEL = new Audio('src/sonidos/sfx/exito.mp3');
 
 if (SONIDO_ACIERTO) SONIDO_ACIERTO.volume = 0.5;
 if (SONIDO_ERROR) SONIDO_ERROR.volume = 0.4;
 if (SONIDO_EXITO_NIVEL) SONIDO_EXITO_NIVEL.volume = 0.6;
 
-// Variable de control para la narración activa actual
 let narracionActual = null;
 
 // ==================== ESTADO GLOBAL ====================
@@ -59,12 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         puntajeDiv.style.color = 'var(--fiusha-preescolar)';
         puntajeDiv.style.padding = '8px 18px';
         puntajeDiv.style.borderRadius = '30px';
-        puntajeDiv.style.fontWeight = '900';
-        puntajeDiv.style.fontSize = '1.3rem';
-        puntajeDiv.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
-        puntajeDiv.style.zIndex = '1000';
-        puntajeDiv.innerText = `⭐ PUNTOS: 0`;
-        document.getElementById('app').appendChild(puntajeDiv);
         spanPuntajeGlobal = puntajeDiv;
     } else {
         spanPuntajeGlobal = document.getElementById('puntaje-global');
@@ -91,9 +84,13 @@ function inicializarEscala() {
 function habilitarAudioGlobal() {
     if (estadoGlobal.audioPermitido) return;
     estadoGlobal.audioPermitido = true;
+    
+    // Inicia la música ambiental correctamente al interactuar
     MUSICA_FONDO.play().catch(e => console.log('Música diferida:', e));
     
-    reproducirNarracion('src/sonidos/L1/instruccion_portada.mp3'); 
+    // Truco elástico para desbloquear canales de audio sin reproducir tracks narrativos aún
+    const audioFicticio = new Audio();
+    audioFicticio.play().catch(() => {});
 }
 
 function reproducirSonido(tipo) {
@@ -108,7 +105,7 @@ function reproducirSonido(tipo) {
     }
 }
 
-function reproducirNarracion(rutaArchivo) {
+function reproducirNarracion(rutaArchivo, onTerminado = null) {
     if (!estadoGlobal.audioPermitido || !rutaArchivo) return;
     
     try {
@@ -118,6 +115,11 @@ function reproducirNarracion(rutaArchivo) {
         }
         narracionActual = new Audio(rutaArchivo);
         narracionActual.volume = 0.90; 
+        
+        if (onTerminado) {
+            narracionActual.addEventListener('ended', onTerminado, { once: true });
+        }
+        
         narracionActual.play().catch(e => console.log('Narración bloqueada temporalmente:', e));
     } catch (error) {
         console.error("Error al reproducir la voz narrativa:", error);
@@ -145,6 +147,7 @@ function mostrarPantalla(idPantalla) {
 function configurarManejadoresEventos() {
     const btnIniciar = document.getElementById('btn-iniciar');
     if (btnIniciar) {
+        btnIniciar.innerHTML = `▶️ ¡JUGAR!`;
         btnIniciar.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             estadoGlobal.nivelActual = 1;
@@ -153,6 +156,36 @@ function configurarManejadoresEventos() {
             iniciarNivelActual();
         });
     }
+
+    const btnComoJugar = document.getElementById('btn-como-jugar');
+    if (btnComoJugar) {
+        btnComoJugar.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (modalComoJugar) {
+                modalComoJugar.classList.remove('hidden');
+            }
+        });
+    }
+
+    if (modalComoJugar) {
+        const elementosCierre = modalComoJugar.querySelectorAll('.cerrar-modal, .btn-cerrar, #btn-entendido');
+        elementosCierre.forEach(elemento => {
+            elemento.addEventListener('click', () => {
+                modalComoJugar.classList.add('hidden');
+            });
+        });
+    }
+}
+
+// Expuesta globalmente o compartida para ser disparada tras seleccionar personaje
+export function mostrarModalInstruccionNivel2(onCerrarModal) {
+    mostrarModalMensaje(
+        "Coloca cada ilustración en donde corresponde",
+        onCerrarModal, 
+        '▶️ ¡VAMOS!',
+        'intro-nivel'
+    );
+    reproducirNarracion(`src/sonidos/L2/instruccion_portada.mp3`);
 }
 
 // ==================== INYECTOR Y CONTROLADOR DE NIVELES ====================
@@ -172,41 +205,58 @@ async function iniciarNivelActual() {
     const callbacks = {
         sumarPuntos: (puntos) => actualizarPuntajeGlobal(puntos),
         reproducirSonido: (tipo) => reproducirSonido(tipo),
-        reproducirNarracion: (ruta) => reproducirNarracion(ruta), 
+        reproducirNarracion: (ruta, onTerminado) => reproducirNarracion(ruta, onTerminado), 
         finalizarNivel: (exito, puntosObtenidos) => {
             estadoGlobal.juegoActivo = false;
             
             if (exito) {
-                reproducirSonido('exito');
-                reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/logrado_exito.mp3`);
-                
-                setTimeout(() => {
-                    if (estadoGlobal.nivelActual === 1 || estadoGlobal.nivelActual === 2) {
-                        // TEXTO IDÉNTICO WORD NIVELES 1 Y 2
+                const mostrarExitoTransicion = () => {
+                    reproducirSonido('exito');
+                    reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/logrado_exito.mp3`);
+                    
+                    if (estadoGlobal.nivelActual === 1) {
+                        mostrarModalMensaje(
+                            `¡Felicidades! Has descubierto grandes regalos de la creación.`,
+                            () => {
+                                estadoGlobal.nivelActual++;
+                                iniciarNivelActual(); 
+                            },
+                            '▶️ Siguiente Nivel',
+                            'exito-nivel'
+                        );
+                    } else if (estadoGlobal.nivelActual === 2) {
                         mostrarModalMensaje(
                             `¡Felicidades! Has descubierto que la vida es un gran regalo.`,
                             () => {
                                 estadoGlobal.nivelActual++;
                                 iniciarNivelActual();
                             },
-                            'Siguiente Nivel',
+                            '▶️ Siguiente Nivel',
                             'exito-nivel'
                         );
                     } else if (estadoGlobal.nivelActual === 3) {
-                        // TEXTO IDÉNTICO WORD NIVEL 3 + CIERRE GLOBAL DEL DOCUMENTO
                         mostrarModalMensaje(
-                            `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.\n\n🏆 ¡Felicidades! Descubriste los grandes regalos 🏆`,
+                            `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.`,
                             () => {
                                 mostrarPantalla('pantalla-inicio');
                                 estadoGlobal.nivelActual = 1;
                                 estadoGlobal.puntajeTotal = 0;
                                 actualizarPuntajeGlobal(0);
                             },
-                            'Volver al Inicio',
+                            '🏠 Volver al Inicio',
                             'exito-nivel'
                         );
                     }
-                }, 2500); 
+                };
+
+                // REGLA DE DELAY DE 2 SEGUNDOS SIN PAUSAR
+                if (estadoGlobal.nivelActual === 2 && narracionActual) {
+                    narracionActual.addEventListener('ended', () => {
+                        setTimeout(mostrarExitoTransicion, 600);
+                    }, { once: true });
+                } else {
+                    setTimeout(mostrarExitoTransicion, 2000);
+                }
                 
             } else {
                 mostrarModalMensaje(
@@ -214,50 +264,55 @@ async function iniciarNivelActual() {
                     () => {
                         iniciarNivelActual(); 
                     },
-                    'Reintentar',
+                    '🔄 Reintentar',
                     'error-nivel'
                 );
             }
         },
         mostrarModal: (mensaje, exito) => {
             if (exito) {
-                const txt = estadoGlobal.nivelActual === 3 
-                    ? `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.` 
-                    : `¡Felicidades! Has descubierto que la vida es un gran regalo.`;
-                mostrarModalMensaje(txt, null, 'Genial', 'exito-nivel');
+                let txt = "";
+                if (estadoGlobal.nivelActual === 1) txt = `¡Felicidades! Has descubierto grandes regalos de la creación.`;
+                else if (estadoGlobal.nivelActual === 2) txt = `¡Felicidades! Has descubierto que la vida es un gran regalo.`;
+                else if (estadoGlobal.nivelActual === 3) txt = `¡Felicidades! Ya sabes cómo cuidar la casa donde todos vivimos.`;
+
+                if (estadoGlobal.nivelActual === 2 && narracionActual) {
+                    narracionActual.addEventListener('ended', () => {
+                        mostrarModalMensaje(txt, null, '▶️ Genial', 'exito-nivel');
+                    }, { once: true });
+                } else {
+                    mostrarModalMensaje(txt, null, '▶️ Genial', 'exito-nivel');
+                }
             } else {
                 mostrarModalMensaje(`Inténtalo de nuevo para descubrir todos los regalos.`, null, 'Entendido', 'error-nivel');
             }
         }
     };
 
-    // CORRECCIÓN CENTRAL: Mensaje de instrucción dinámico e idéntico al Word por nivel
-    let instruccionTexto = "";
-    switch(estadoGlobal.nivelActual) {
-        case 1:
-            instruccionTexto = "¡Atrapa los regalos de la creación!";
-            break;
-        case 2:
-            instruccionTexto = "Toca las partes de tu cuerpo y descubre por qué son un tesoro.";
-            break;
-        case 3:
+    if (estadoGlobal.nivelActual === 2) {
+        ejecutarLogicaNivel(callbacks);
+    } else {
+        let instruccionTexto = "";
+        if (estadoGlobal.nivelActual === 1) {
+            instruccionTexto = "¡Atrapa los regalos que nos da Papá Dios!";
+        } else if (estadoGlobal.nivelActual === 3) {
             instruccionTexto = "Elige las ilustraciones que ayudan a cuidar la casa en donde todos vivimos.";
-            break;
-        default:
+        } else {
             instruccionTexto = "Elige las ilustraciones correctas.";
+        }
+
+        mostrarModalMensaje(
+            instruccionTexto,
+            () => {
+                ejecutarLogicaNivel(callbacks);
+            }, 
+            '▶️ ¡VAMOS!',
+            'intro-nivel'
+        );
+
+        // MODIFICACIÓN: Aquí es donde se dispara el audio exactamente al iniciar el juego
+        reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/instruccion_portada.mp3`);
     }
-
-    // Desplegar el modal visual correcto en pantalla
-    mostrarModalMensaje(
-        instruccionTexto,
-        () => {
-            ejecutarLogicaNivel(callbacks);
-        }, 
-        '¡VAMOS!',
-        'intro-nivel'
-    );
-
-    reproducirNarracion(`src/sonidos/L${estadoGlobal.nivelActual}/instruccion_portada.mp3`);
 }
 
 async function ejecutarLogicaNivel(callbacks) {
@@ -272,7 +327,7 @@ async function ejecutarLogicaNivel(callbacks) {
     estadoGlobal.nivelEnCurso = instancia;
 }
 
-function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEstilo = 'default') {
+function mostrarModalMensaje(mensaje, onCerrar, textoBoton = '▶️ Continuar', tipoEstilo = 'default') {
     if (!modalMensaje) {
         modalMensaje = document.createElement('div');
         modalMensaje.id = 'modal-mensaje';
@@ -292,7 +347,7 @@ function mostrarModalMensaje(mensaje, onCerrar, textoBoton = 'Continuar', tipoEs
     const btn = modalMensaje.querySelector('#modal-mensaje-btn');
     
     if (textoP) textoP.innerText = mensaje;
-    if (btn) btn.innerText = textoBoton;
+    if (btn) btn.innerHTML = textoBoton;
     
     contenido.className = 'modal-contenido';
     if (tipoEstilo !== 'default') {

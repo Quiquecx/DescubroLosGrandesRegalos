@@ -18,7 +18,8 @@ export async function iniciarNivel1(callbacks) {
         'Flor.png', 'Foca.png', 'Ganso.png', 'Hormiguero.png',
         'Lirio 02.png', 'Lirio.png', 'Margarita.png', 'Marte.png',
         'Neptuno.png', 'Pinguino.png', 'Rosa.png', 'Saturno.png',
-        'Urano.png', 'Venus.png'
+        'Urano.png', 'Venus.png', 'estrella.png', 'Pag_29_A.png',
+        'Pag_29_B.png', 'Pag_29_C.png'
     ];
 
     const listaTrampas = ['Basura.png']; 

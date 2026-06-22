@@ -1,4 +1,6 @@
 // src/bloques/nivel2.js - Mi cuerpo es un tesoro (Versión INTEGRADA CON EL WORD)
+import { mostrarModalInstruccionNivel2 } from '../main.js';
+
 export async function iniciarNivel2(callbacks) {
     const { sumarPuntos, reproducirSonido, reproducirNarracion, finalizarNivel, mostrarModal } = callbacks;
     
@@ -10,7 +12,6 @@ export async function iniciarNivel2(callbacks) {
     let personajeSeleccionado = null;
     let piezaClickeadaPreviamente = null;
     
-    // Base de rutas unificada
     const BASE_PATH = 'src/imgs/n2/';  
     
     let escenario = document.getElementById('escenario-juego');
@@ -21,12 +22,11 @@ export async function iniciarNivel2(callbacks) {
         document.getElementById('app').appendChild(escenario);
     }
     
-    // Limpiar y mostrar
     escenario.innerHTML = '';
     escenario.classList.add('visible');
     escenario.style.backgroundColor = '#fdfaf2';
     
-    // ---------- PASO 1: Selección de personaje ----------
+    // El juego inicia directo en completo silencio pidiendo la selección
     mostrarSeleccionPersonaje();
     
     function mostrarSeleccionPersonaje() {
@@ -51,53 +51,57 @@ export async function iniciarNivel2(callbacks) {
             card.addEventListener('click', () => {
                 personajeSeleccionado = card.dataset.personaje;
                 console.log(`Personaje seleccionado: ${personajeSeleccionado}`);
-                iniciarJuegoArrastre();
+                
+                // MEJORA INTERACTIVA: Disparar audio de vozSeleccionPersonajeL2 y al terminar abrir la instrucción
+                reproducirNarracion('src/sonidos/L2/vozSeleccionPersonajeL2.mp3', () => {
+                    // Este bloque se ejecuta exactamente cuando finaliza la pista de audio
+                    mostrarModalInstruccionNivel2(() => {
+                        iniciarJuegoArrastre();
+                    });
+                });
             });
         });
     }
     
-    // ---------- PASO 2: Juego de arrastre ----------
     function iniciarJuegoArrastre() {
         const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
         const personajeCap = capitalize(personajeSeleccionado);
         
-        // CORRECCIÓN CENTRAL: Mapeo exacto de los textos e intenciones pedagógicas del Word
         const partes = {
             cabeza: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Cabeza_${personajeCap}.png`, 
-                texto: 'Mi cabeza y mi carita son regalos de Dios para expresarme.',
+                text: 'Mi cabeza y mi carita son regalos de Dios para expresarme.',
                 audioUrl: 'src/sonidos/L2/CaritaConOjosCerrados.mp3'
             },
             manos: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Manos_${personajeCap}.png`, 
-                texto: 'Con mis manitas puedo hacer cosas buenas.' ,
+                text: 'Con mis manitas puedo hacer cosas buenas.' ,
                 audioUrl: 'src/sonidos/L2/manos.mp3'
             },
             pies: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Pies_${personajeCap}.png`, 
-                texto: 'Con mis pies puedo caminar, jugar y hacer el bien.' ,
+                text: 'Con mis pies puedo caminar, jugar y hacer el bien.' ,
                 audioUrl: 'src/sonidos/L2/pies.mp3'
             },
             oidos: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Orejas_${personajeCap}.png`, 
-                texto: 'Con mis oídos escucho con atención.' ,
+                text: 'Con mis oídos escucho con atención.' ,
                 audioUrl: 'src/sonidos/L2/oidos.mp3'
             },
             ojos: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Ojos_${personajeCap}.png`, 
-                texto: 'Con mis ojos puedo ver las maravillas de la creación.' ,
+                text: 'Con mis ojos puedo ver las maravillas de la creación.' ,
                 audioUrl: 'src/sonidos/L2/ojosAbiertos.mp3'
             },
             corazon: { 
                 img: `${BASE_PATH}${personajeSeleccionado}/Corazon.png`, 
-                texto: 'Papá Dios me dio un corazón para amar y hacer el bien.' ,
+                text: 'Papá Dios me dio un corazón para amar y hacer el bien.' ,
                 audioUrl: 'src/sonidos/L2/corazon.mp3'
             }
         };
         
         const siluetaImg = `${BASE_PATH}${personajeSeleccionado}/${personajeCap}_silueta.png`;
 
-        // Estructura HTML con la clase dinámica del personaje en el contenedor principal
         const juegoHTML = `
             <div class="nivel2-contenedor personaje-${personajeSeleccionado}">
                 <div class="nivel2-header">
@@ -126,13 +130,10 @@ export async function iniciarNivel2(callbacks) {
                     
                     <div class="partes-container" id="partes-container"></div>
                 </div>
-                
-                <div class="mensaje-final-n2 hidden" id="mensaje-final-n2"></div>
             </div>
         `;
         escenario.innerHTML = juegoHTML;
         
-        // ---------- Sincronización Automática de Zonas Drop con CSS ----------
         setTimeout(() => {
             const partesKeys = ['cabeza', 'manos', 'pies', 'oidos', 'ojos', 'corazon'];
             partesKeys.forEach(parte => {
@@ -141,7 +142,6 @@ export async function iniciarNivel2(callbacks) {
                 if (destino && zona) {
                     zona.style.top = destino.style.top || getComputedStyle(destino).top;
                     zona.style.left = destino.style.left || getComputedStyle(destino).left;
-                    zona.style.width = sizeofDestinoWidth || getComputedStyle(destino).width;
                     
                     if (parte === 'cabeza') zona.style.height = '35%';
                     else if (parte === 'ojos') zona.style.height = '10%';
@@ -153,7 +153,6 @@ export async function iniciarNivel2(callbacks) {
             });
         }, 50);
 
-        // ---------- Generar piezas sueltas (mezcladas) ----------
         const llavesMezcladas = Object.keys(partes).sort(() => Math.random() - 0.5);
         const partesContainer = document.getElementById('partes-container');
         
@@ -167,7 +166,6 @@ export async function iniciarNivel2(callbacks) {
             const img = document.createElement('img');
             img.src = data.img;
             img.alt = key;
-            img.onerror = () => console.error(`Error: No se pudo cargar la pieza [${key}] en: ${data.img}`);
             
             parteDiv.appendChild(img);
             
@@ -178,7 +176,6 @@ export async function iniciarNivel2(callbacks) {
             partesContainer.appendChild(parteDiv);
         });
         
-        // ---------- Configurar zonas de drop ----------
         document.querySelectorAll('.drop-capturador').forEach(zona => {
             zona.addEventListener('dragover', (e) => e.preventDefault());
             zona.addEventListener('drop', handleDrop);
@@ -228,7 +225,6 @@ export async function iniciarNivel2(callbacks) {
             if (elemento) elemento.classList.add('seleccionada');
         }
         
-        // ---------- Verificación centralizada ----------
         function procesarVerificacion(parteId, parteEsperada) {
             if (parteId !== parteEsperada) {
                 if (reproducirSonido) reproducirSonido('error');
@@ -256,11 +252,9 @@ export async function iniciarNivel2(callbacks) {
             if (sumarPuntos) sumarPuntos(PUNTOS_POR_ACIERTO);
             if (reproducirSonido) reproducirSonido('acierto');
             
-            // CORRECCIÓN 1: Extraer datos limpios usando la propiedad correcta (.texto)
             const parteData = partes[parteId];
-            mostrarFeedback(`🎵 ${parteData.texto}`, 'acierto');
+            mostrarFeedback(`🎵 ${parteData.text}`, 'acierto');
             
-            // CORRECCIÓN 2: Invocar el reproductor de narraciones de main.js pasándole la ruta .mp3
             if (reproducirNarracion) {
                 reproducirNarracion(parteData.audioUrl);
             }
@@ -274,13 +268,9 @@ export async function iniciarNivel2(callbacks) {
             if (aciertos === totalPartes) {
                 juegoActivo = false;
                 const mensaje = '¡Felicidades! Has descubierto que la vida es un gran regalo.';
-                const mensajeDiv = document.getElementById('mensaje-final-n2');
-                mensajeDiv.innerText = mensaje;
-                mensajeDiv.classList.remove('hidden');
                 
-                if (mostrarModal) mostrarModal(mensaje, true);
+                // Se removieron las alertas internas de finalización del archivo local
                 if (finalizarNivel) finalizarNivel(true, puntajeNivel);
-                agregarBotonContinuar();
             }
         }
         
@@ -292,16 +282,6 @@ export async function iniciarNivel2(callbacks) {
             feedback.innerText = texto;
             contenedor.appendChild(feedback);
             setTimeout(() => feedback.remove(), 2500);
-        }
-        
-        function agregarBotonContinuar() {
-            const btn = document.createElement('button');
-            btn.innerText = '➡️ Siguiente nivel';
-            btn.className = 'btn-continuar-n2';
-            btn.addEventListener('click', () => {
-                if (finalizarNivel) finalizarNivel(true, puntajeNivel, { continuar: true });
-            });
-            document.getElementById('mensaje-final-n2').appendChild(btn);
         }
     }
     

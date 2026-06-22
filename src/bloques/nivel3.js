@@ -16,10 +16,10 @@ export async function iniciarNivel3(callbacks) {
         { id: 'perrito', src: 'src/imgs/n3/Niña con perrito.png', esCorrecto: true, audio: 'src/audio/narraciones/n3_perrito.mp3' },
         { id: 'manos', src: 'src/imgs/n3/Niña-lavandose-las-manos.png', esCorrecto: true, audio: 'src/audio/narraciones/n3_manos.mp3' },
         
-        { id: 'manguera', src: 'src/img/regalos/Niño con manguera.png', esCorrecto: false, audio: 'src/audio/narraciones/n3_error.mp3' },
+        { id: 'pecera', src: 'src/imgs/n3/Niño con pecera.png', esCorrecto: true, audio: 'src/audio/narraciones/n3_error.mp3' },
         { id: 'pateo', src: 'src/imgs/n3/Niña pateo algo.png', esCorrecto: false, audio: 'src/audio/narraciones/n3_error.mp3' },
         { id: 'flores', src: 'src/imgs/n3/Niño arrancando flores.png', esCorrecto: false, audio: 'src/audio/narraciones/n3_error.mp3' },
-        { id: 'basura', src: 'src/img/regalos/Niña con bote y basura .png', esCorrecto: false, audio: 'src/audio/narraciones/n3_error.mp3' }
+        { id: 'basura', src: 'src/imgs/n3/Niña con bote y basura .png', esCorrecto: true, audio: 'src/audio/narraciones/n3_error.mp3' }
     ];
 
     // Mezclar las tarjetas para que no salgan siempre en el mismo orden
