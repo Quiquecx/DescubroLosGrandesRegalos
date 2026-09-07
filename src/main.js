@@ -1,5 +1,5 @@
 // ==========================================================
-// main.js - Control Central y Máquina de Estados del Juego
+// main.js - Control Central y Máquina de Estados del Juego (Audio Optimizado)
 // ==========================================================
 
 import { iniciarNivel1 } from './bloques/nivel1.js';
@@ -9,15 +9,19 @@ import { iniciarNivel3 } from './bloques/nivel3.js';
 // ==================== CONFIGURACIÓN DE AUDIO ====================
 const MUSICA_FONDO = new Audio('src/sonidos/musica/loop_principal.mp3');
 MUSICA_FONDO.loop = true;
-MUSICA_FONDO.volume = 0.01; 
+MUSICA_FONDO.volume = 0.03; 
 
-const SONIDO_ACIERTO = new Audio('src/sonidos/sfx/acierto.mp3');
-const SONIDO_ERROR = new Audio('src/sonidos/sfx/error.mp3');
-const SONIDO_EXITO_NIVEL = new Audio('src/sonidos/sfx/exito.mp3');
+// Rutas de efectos de sonido
+const RUTA_ACIERTO = 'src/sonidos/sfx/acierto.mp3';
+const RUTA_ERROR = 'src/sonidos/sfx/error.mp3';
+const RUTA_EXITO = 'src/sonidos/sfx/exito.mp3';
 
-if (SONIDO_ACIERTO) SONIDO_ACIERTO.volume = 0.5;
-if (SONIDO_ERROR) SONIDO_ERROR.volume = 0.4;
-if (SONIDO_EXITO_NIVEL) SONIDO_EXITO_NIVEL.volume = 0.6;
+// Cache de Audio para evitar carga demorada en red
+const cacheSFX = {
+    acierto: new Audio(RUTA_ACIERTO),
+    error: new Audio(RUTA_ERROR),
+    exito: new Audio(RUTA_EXITO)
+};
 
 let narracionActual = null;
 
@@ -31,7 +35,7 @@ const estadoGlobal = {
     juegoActivo: false
 };
 
-let pantallaInicio, escenarioJuego, modalMensaje, modalComoJugar, spanPuntajeGlobal, leyendaEditorial;
+let pantallaInicio, escenarioJuego, modalMensaje, modalComoJugar, spanPuntajeGlobal;
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -63,12 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
         spanPuntajeGlobal = document.getElementById('puntaje-global');
     }
 
-    
-    
     inicializarEscala();
     configurarManejadoresEventos();
     
+    // Escuchar cualquier interacción inicial para desbloquear el audio del navegador
     document.body.addEventListener('pointerdown', habilitarAudioGlobal, { once: true });
+    document.body.addEventListener('touchstart', habilitarAudioGlobal, { once: true });
 });
 
 function inicializarEscala() {
@@ -87,27 +91,49 @@ function habilitarAudioGlobal() {
     if (estadoGlobal.audioPermitido) return;
     estadoGlobal.audioPermitido = true;
     
-    // Inicia la música ambiental correctamente al interactuar
     MUSICA_FONDO.play().catch(e => console.log('Música diferida:', e));
     
-    // Truco elástico para desbloquear canales de audio sin reproducir tracks narrativos aún
-    const audioFicticio = new Audio();
-    audioFicticio.play().catch(() => {});
+    // Precarga silenciosa para desbloquear los canales SFX en móviles
+    Object.values(cacheSFX).forEach(audio => {
+        audio.muted = true;
+        audio.play().then(() => {
+            audio.pause();
+            audio.currentTime = 0;
+            audio.muted = false;
+        }).catch(() => {
+            audio.muted = false;
+        });
+    });
 }
 
-function reproducirSonido(tipo) {
-    if (!estadoGlobal.audioPermitido) return;
-    let sonido;
-    if (tipo === 'acierto') sonido = SONIDO_ACIERTO;
-    else if (tipo === 'error') sonido = SONIDO_ERROR;
-    else if (tipo === 'exito') sonido = SONIDO_EXITO_NIVEL;
-    if (sonido) {
-        sonido.currentTime = 0;
-        sonido.play().catch(e => console.log('SFX Bloqueado:', e));
+// ==================== REPRODUCCIÓN DE SFX ====================
+export function reproducirSonido(tipo) {
+    if (!estadoGlobal.audioPermitido) {
+        habilitarAudioGlobal();
     }
+    
+    let baseAudio = cacheSFX[tipo];
+    let vol = 0.5;
+
+    if (tipo === 'acierto') vol = 0.5;
+    else if (tipo === 'error') vol = 0.4;
+    else if (tipo === 'exito') vol = 0.6;
+
+    if (baseAudio) {
+        // Usar cloneNode() permite reproducciones simultáneas en ráfaga rápida
+        const sfx = baseAudio.cloneNode();
+        sfx.volume = vol;
+        const playPromise = sfx.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log('SFX Bloqueado o no encontrado:', e));
+        }
+        return sfx; // CORREGIDO: Retorna el elemento HTMLAudioElement para nivel1.js
+    }
+    return null;
 }
 
-function reproducirNarracion(rutaArchivo, onTerminado = null) {
+export function reproducirNarracion(rutaArchivo, onTerminado = null) {
     if (!estadoGlobal.audioPermitido || !rutaArchivo) return;
     
     try {
@@ -152,6 +178,7 @@ function configurarManejadoresEventos() {
         btnIniciar.innerHTML = `▶️ ¡JUGAR!`;
         btnIniciar.addEventListener('pointerdown', (e) => {
             e.preventDefault();
+            habilitarAudioGlobal();
             estadoGlobal.nivelActual = 1;
             estadoGlobal.puntajeTotal = 0;
             actualizarPuntajeGlobal(0);
@@ -179,7 +206,6 @@ function configurarManejadoresEventos() {
     }
 }
 
-// Expuesta globalmente o compartida para ser disparada tras seleccionar personaje
 export function mostrarModalInstruccionNivel2(onCerrarModal) {
     mostrarModalMensaje(
         "Coloca cada ilustración en donde corresponde",
@@ -251,7 +277,6 @@ async function iniciarNivelActual() {
                     }
                 };
 
-                // REGLA DE DELAY DE 2 SEGUNDOS SIN PAUSAR
                 if (estadoGlobal.nivelActual === 2 && narracionActual) {
                     narracionActual.addEventListener('ended', () => {
                         setTimeout(mostrarExitoTransicion, 600);

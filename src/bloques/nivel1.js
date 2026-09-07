@@ -1,6 +1,6 @@
-// src/bloques/nivel1.js - Atrapa los regalos de la creación (Versión MEGA VISUAL)
+// src/bloques/nivel1.js - Atrapa los regalos de la creación (Versión Sonido Corregido)
 export async function iniciarNivel1(callbacks) {
-    const { sumarPuntos, reproducirSonido, finalizarNivel, mostrarModal } = callbacks;
+    const { sumarPuntos, reproducirSonido, finalizarNivel } = callbacks;
     
     const TIEMPO_LIMITE = 45; 
     const PUNTOS_POR_REGALO = 10;
@@ -11,6 +11,7 @@ export async function iniciarNivel1(callbacks) {
     let regalosAtrapados = 0;
     let tiempoRestante = TIEMPO_LIMITE;
     let temporizadorInterval = null;
+    let intervaloGeneracion = null;
     let juegoActivo = true;
     
     const listaRegalos = [
@@ -61,7 +62,6 @@ export async function iniciarNivel1(callbacks) {
     const areaRegalos = document.getElementById('area-regalos');
     const tiempoSpan = document.getElementById('tiempo');
     const puntosSpan = document.getElementById('puntos-nivel1');
-    const mensajeFinalDiv = document.getElementById('mensaje-final-nivel1');
     
     function generarElementoFlotante() {
         if (!juegoActivo) return;
@@ -82,13 +82,11 @@ export async function iniciarNivel1(callbacks) {
         img.src = `src/imgs/n1/regalos/${nombreArchivo}`;
         img.alt = esTrampa ? 'Trampa' : 'Regalo';
         
-        // ¡TAMAÑOS COLOSALES DE PIEZAS! (De 65px/75px suben a 115px y 135px)
         img.style.width = esTrampa ? '115px' : '135px'; 
         img.style.height = 'auto';
         img.style.pointerEvents = 'none'; 
         elementoDiv.appendChild(img);
         
-        // Punto de origen ajustado al centro del nuevo Papá Dios gigante
         elementoDiv.style.left = '140px';
         elementoDiv.style.top = '480px';
         elementoDiv.style.transform = 'scale(0.1)';
@@ -98,11 +96,9 @@ export async function iniciarNivel1(callbacks) {
         
         areaRegalos.appendChild(elementoDiv);
         
-        // Destinos de dispersión por la pantalla (evitando que se salgan del marco lateral derecho)
         const destinoX = 280 + Math.random() * 580; 
         const alturaImpulso = 40 + Math.random() * 90; 
         
-        // FASE 1: ¡Disparo hacia arriba!
         setTimeout(() => {
             if (!juegoActivo || !elementoDiv.parentNode) return;
             elementoDiv.style.left = `${destinoX}px`;
@@ -111,24 +107,22 @@ export async function iniciarNivel1(callbacks) {
             elementoDiv.style.opacity = '1';
         }, 50);
         
-        // FASE 2: Gravedad y caída
         setTimeout(() => {
             if (!juegoActivo || !elementoDiv.parentNode || elementoDiv.getAttribute('data-atrapado') === 'true') return;
-            // Caída ligeramente más lenta (2.6s) para darles tiempo de reaccionar al nuevo tamaño gigante
             elementoDiv.style.transition = 'top 2.6s linear, transform 0.2s ease, opacity 0.2s ease';
             elementoDiv.style.top = '790px'; 
         }, 600);
         
-        // Eliminación del mapa
         setTimeout(() => {
             if (elementoDiv.parentNode) {
                 elementoDiv.remove();
             }
         }, 3300);
         
-        // Captura
-        elementoDiv.addEventListener('mousedown', (e) => {
+        elementoDiv.addEventListener('pointerdown', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            
             if (!juegoActivo || elementoDiv.getAttribute('data-atrapado') === 'true') return;
             
             elementoDiv.setAttribute('data-atrapado', 'true');
@@ -138,10 +132,13 @@ export async function iniciarNivel1(callbacks) {
                 elementoDiv.style.transform = 'scale(0.5) rotate(-25deg)';
                 elementoDiv.style.opacity = '0';
                 
-                puntajeNivel += PENALIZACION_TRAMPA;
-                if (puntajeNivel < 0) puntajeNivel = 0;
+                const puntosAntes = puntajeNivel;
+                puntajeNivel = Math.max(0, puntajeNivel + PENALIZACION_TRAMPA);
+                const restaReal = puntajeNivel - puntosAntes;
+
+                if (sumarPuntos && restaReal !== 0) sumarPuntos(restaReal);
                 
-                if (sumarPuntos) sumarPuntos(PENALIZACION_TRAMPA);
+                // DISPARO DIRECTO DEL SONIDO DE ERROR
                 if (reproducirSonido) reproducirSonido('error'); 
             } else {
                 elementoDiv.style.transform = 'scale(1.3)';
@@ -151,6 +148,8 @@ export async function iniciarNivel1(callbacks) {
                 regalosAtrapados++;
                 
                 if (sumarPuntos) sumarPuntos(PUNTOS_POR_REGALO);
+                
+                // DISPARO DIRECTO DEL SONIDO DE ACIERTO
                 if (reproducirSonido) reproducirSonido('acierto');
             }
             
@@ -159,52 +158,36 @@ export async function iniciarNivel1(callbacks) {
         });
     }
     
-    let intervaloGeneracion = setInterval(generarElementoFlotante, 900); // 900ms para compensar el tamaño y que no se sature la pantalla
+    intervaloGeneracion = setInterval(generarElementoFlotante, 900);
     
     temporizadorInterval = setInterval(() => {
         if (!juegoActivo) return;
         
         if (tiempoRestante <= 1) {
-            clearInterval(temporizadorInterval);
-            clearInterval(intervaloGeneracion);
+            limpiarTimers();
             juegoActivo = false;
             
             const exito = regalosAtrapados >= MIN_REGALOS_PARA_APROBAR;
-            const mensaje = exito 
-                ? '🎉 ¡Felicidades! Has descubierto grandes regalos de la creación. 🎉'
-                : `¡Oh no! Lograste atrapar ${regalosAtrapados} regalos buenos. Necesitas al menos ${MIN_REGALOS_PARA_APROBAR}. ¡Inténtalo de nuevo!`;
             
-            mensajeFinalDiv.innerHTML = `<p>${mensaje}</p>`;
-            mensajeFinalDiv.classList.remove('hidden');
-            
-            if (mostrarModal) mostrarModal(mensaje, exito);
-            if (finalizarNivel) finalizarNivel(exito, puntajeNivel);
-            
-            agregarBotonReintentar();
+            if (finalizarNivel) {
+                finalizarNivel(exito, puntajeNivel);
+            }
         } else {
             tiempoRestante--;
             tiempoSpan.innerText = tiempoRestante;
         }
     }, 1000);
     
-    function agregarBotonReintentar() {
-        const botonReintentar = document.createElement('button');
-        botonReintentar.innerText = '🔁 Jugar de nuevo';
-        botonReintentar.className = 'btn-principal';
-        botonReintentar.style.marginTop = '20px';
-        botonReintentar.addEventListener('click', () => {
-            limpiarNivel();
-            iniciarNivel1(callbacks);
-        });
-        mensajeFinalDiv.appendChild(botonReintentar);
+    function limpiarTimers() {
+        if (temporizadorInterval) clearInterval(temporizadorInterval);
+        if (intervaloGeneracion) clearInterval(intervaloGeneracion);
     }
     
     function limpiarNivel() {
-        if (temporizadorInterval) clearInterval(temporizadorInterval);
-        if (intervaloGeneracion) clearInterval(intervaloGeneracion);
         juegoActivo = false;
-        areaRegalos.innerHTML = '';
-        escenario.classList.remove('visible');
+        limpiarTimers();
+        if (areaRegalos) areaRegalos.innerHTML = '';
+        if (escenario) escenario.classList.remove('visible');
     }
     
     return { limpiar: limpiarNivel };
