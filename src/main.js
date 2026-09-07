@@ -9,7 +9,7 @@ import { iniciarNivel3 } from './bloques/nivel3.js';
 // ==================== CONFIGURACIÓN DE AUDIO ====================
 const MUSICA_FONDO = new Audio('src/sonidos/musica/loop_principal.mp3');
 MUSICA_FONDO.loop = true;
-MUSICA_FONDO.volume = 0.09; 
+MUSICA_FONDO.volume = 0.01; 
 
 const SONIDO_ACIERTO = new Audio('src/sonidos/sfx/acierto.mp3');
 const SONIDO_ERROR = new Audio('src/sonidos/sfx/error.mp3');
@@ -63,26 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         spanPuntajeGlobal = document.getElementById('puntaje-global');
     }
 
-    // ==================== AGREGAR LEYENDA EDITORIAL ====================
-    if (!document.getElementById('leyenda-editorial')) {
-        leyendaEditorial = document.createElement('div');
-        leyendaEditorial.id = 'leyenda-editorial';
-        leyendaEditorial.innerText = 'Ediciones Casa del Catequista';
-        leyendaEditorial.style.position = 'fixed';
-        leyendaEditorial.style.bottom = '12px';
-        leyendaEditorial.style.left = '50%';
-        leyendaEditorial.style.transform = 'translateX(-50%)';
-        leyendaEditorial.style.fontSize = '15px';
-        leyendaEditorial.style.fontWeight = 'bold';
-        leyendaEditorial.style.color = '#ffffff';
-        leyendaEditorial.style.textShadow = '1px 1px 3px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.5)';
-        leyendaEditorial.style.zIndex = '9999';
-        leyendaEditorial.style.pointerEvents = 'none';
-        leyendaEditorial.style.fontFamily = 'sans-serif';
-        document.body.appendChild(leyendaEditorial);
-    } else {
-        leyendaEditorial = document.getElementById('leyenda-editorial');
-    }
+    
     
     inicializarEscala();
     configurarManejadoresEventos();
